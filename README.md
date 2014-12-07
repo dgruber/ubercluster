@@ -24,10 +24,12 @@ Go to cmd/d2stat
 
 1. Start your proxy - one per cluster:
 
-    source path/to/your/GE/installation
-    d2proxy
-    or for listening on port 8282
-    d2proxy -port=":8282"
+    $ source path/to/your/GE/installation
+    $ d2proxy &
+    
+or for listening on port 8282
+    
+    $ d2proxy -port=":8282" &
 
 2. Test the proxies by opening the address in the webbrowser. Example:
 
