@@ -25,6 +25,7 @@ Go to cmd/d2stat
 1. Start your proxy - one per cluster:
 
     $ source path/to/your/GE/installation
+
     $ d2proxy &
     
 or for listening on port 8282
@@ -39,11 +40,11 @@ or for listening on port 8282
 
 4. List all jobs of your default cluster:
 
-    $ ./d2stat -s=all
+    $ d2stat -s=all
 
 5. List all running jobs of cluster "cluster1" (from config):
 
-    $ ./d2stat -c=cluster1 -s=r
+    $ d2stat -c=cluster1 -s=r
 
     job_number:		3000000003
     state:			Running
@@ -67,15 +68,15 @@ or for listening on port 8282
 
 6. Let a simple process running in cluster "cluster1":
 
-    $ ./d2stat -c=cluster1 -submit=sleep -name=MySleeperJob -arg=77 -queue=all.q
+    $ d2stat -c=cluster1 -submit=sleep -name=MySleeperJob -arg=77 -queue=all.q
 
 7. And now in the default cluster:
 
-    $ ./d2stat -submit=sleep -name=MySleeperJob -arg=77 -queue=all.q
+    $ d2stat -submit=sleep -name=MySleeperJob -arg=77 -queue=all.q
 
 8. List all hosts of default cluster:
 
-    $ ./d2stat -m=all
+    $ d2stat -m=all
     
     HOSTNAME ARCH NSOC NCOR NTHR LOAD MEMTOT SWAPTO
     u1010 x64 1 4 4 0.080000 504184 911731
