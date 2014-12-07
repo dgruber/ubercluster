@@ -11,13 +11,13 @@ installed.
 
 Go to cmd/d2proxy
  
- 	$ source path/to/your/GE/installation
+    $ source path/to/your/GE/installation
     $ ./build
 
 
 Go to cmd/d2stat
 
- 	$ source path/to/your/GE/installation
+    $ source path/to/your/GE/installation
     $ ./build
 
 ## Example usage
@@ -44,6 +44,7 @@ or for listening on port 8282
 5. List all running jobs of cluster "cluster1" (from config):
 
     $ ./d2stat -c=cluster1 -s=r
+
     job_number:		3000000003
     state:			Running
     submission_time:	2014-12-06 18:02:59 +0100 CET
@@ -75,6 +76,7 @@ or for listening on port 8282
 8. List all hosts of default cluster:
 
     $ ./d2stat -m=all
+    
     HOSTNAME ARCH NSOC NCOR NTHR LOAD MEMTOT SWAPTO
     u1010 x64 1 4 4 0.080000 504184 911731
     ...
