@@ -238,5 +238,7 @@ func main() {
 	r.HandleFunc("/monitoring", monitoringSessionHandler)
 	r.HandleFunc("/session", jobSubmitHandler).Methods("POST")
 	http.Handle("/", r)
-	log.Fatal(http.ListenAndServe(prt, nil))
+	if err := http.ListenAndServe(prt, nil); err != nil {
+		fmt.Println(err)
+	}
 }
