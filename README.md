@@ -22,7 +22,7 @@ Go to cmd/d2stat
 
 ## Example usage
 
-1. Start your proxy - one per cluster:
+### Start your proxy - one per cluster:
 
     $ source path/to/your/GE/installation
 
@@ -32,17 +32,23 @@ or for listening on port 8282
     
     $ d2proxy -port=":8282" &
 
-2. Test the proxies by opening the address in the webbrowser. Example:
+### Test the proxies by opening the address in the webbrowser.
+
+Example:
 
     $ firefox http://localhost:8888/monitoring?jobs=all
 
-3. Update config.json file in d2stat directory so that it points to your clusters. The default entry is the cluster which is used when no one is specified.
+### Update config.json 
 
-4. List all jobs of your default cluster:
+The config.json file in *d2stat* directory needs to point to your cluster proxies. The **default** entry is the cluster/proxy which is used when no other is specified as parameter of *d2stat*.
+
+### Examples
+
+#### List all jobs of your default cluster
 
     $ d2stat -s=all
 
-5. List all running jobs of cluster "cluster1" (from config):
+#### List all running jobs of cluster "cluster1" (from config)
 
     $ d2stat -c=cluster1 -s=r
 
@@ -66,15 +72,15 @@ or for listening on port 8282
     allocated_machines:	u1010
     exit_status:		-1
 
-6. Let a simple process running in cluster "cluster1":
+#### Let a simple process running in cluster "cluster1"
 
     $ d2stat -c=cluster1 -submit=sleep -name=MySleeperJob -arg=77 -queue=all.q
 
-7. And now in the default cluster:
+#### ..and now in the default cluster:
 
     $ d2stat -submit=sleep -name=MySleeperJob -arg=77 -queue=all.q
 
-8. List all hosts of default cluster:
+#### List all hosts of default cluster:
 
     $ d2stat -m=all
     
