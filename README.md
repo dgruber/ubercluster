@@ -1,5 +1,5 @@
-clusterstatus
-=============
+ubercluster
+===========
 
 Simple multi-clustering tool based on DRMAA2 (e.g. for Univa Grid Engine).
 
