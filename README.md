@@ -1,7 +1,7 @@
 clusterstatus
 =============
 
-Simple multiclustering tools based on DRMAA2 (e.g. for Univa Grid Engine).
+Simple multi-clustering tool based on DRMAA2 (e.g. for Univa Grid Engine).
 
 ## Compilation
 
