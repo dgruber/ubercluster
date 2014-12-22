@@ -8,9 +8,9 @@ Simple multi-clustering tool based on an open standard for job submission and cl
 ## Compilation
 
 Make sure you have a cluster scheduler supporting DRMAA2 C API (like Univa Grid Engine)
-installed. This tool is working on top of the Go DRMAA2 API (which accesses the C API).
+installed. This tool is working on top of the [Go DRMAA2 API](https://github.com/dgruber/drmaa2) (which accesses the C API).
 Hence during compile/runtime the tool needs access to drmaa2.h (which comes with 
-Univa Grid Engine for example / $SGE_ROOT/include) and libdrmaa2.so ($SGE_ROOT/lib/lx-amd64).
+[Univa Grid Engine](http://www.univa.com/resources/univa-grid-engine-trial.php) for example / $SGE_ROOT/include) and libdrmaa2.so ($SGE_ROOT/lib/lx-amd64).
 
 The Go dependencies can be get by calling:
 
