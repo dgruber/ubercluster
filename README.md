@@ -36,21 +36,21 @@ or for listening on port 8282
 
 Example:
 
-    $ firefox http://localhost:8888/monitoring?jobs=all
+    $ firefox http://localhost:8888/v1/monitoring?jobs=all
 
 ### Update config.json 
 
-The config.json file in *d2stat* directory needs to point to your cluster proxies. The **default** entry is the cluster/proxy which is used when no other is specified as parameter of *d2stat*.
+The *config.json* file in **uc** directory needs to point to your cluster proxies. The *default* entry is the cluster/proxy which is used when no other is specified as parameter of **uc**.
 
 ### Examples
 
 #### List all jobs of your default cluster
 
-    $ d2stat -s=all
+    $ uc show jobstate all
 
 #### List all running jobs of cluster "cluster1" (from config)
 
-    $ d2stat -c=cluster1 -s=r
+    $ uc show jobstate r
 
     job_number:		3000000003
     state:			Running
@@ -72,18 +72,55 @@ The config.json file in *d2stat* directory needs to point to your cluster proxie
     allocated_machines:	u1010
     exit_status:		-1
 
-#### Let a simple process running in cluster "cluster1"
+#### Let a simple process run in default cluster
 
-    $ d2stat -c=cluster1 -submit=sleep -name=MySleeperJob -arg=77 -queue=all.q
+    $ uc run --arg=123 /bin/sleep
 
-#### ..and now in the default cluster:
+#### ...and now in the "cluster1" cluster, adding a job name and selecting a queue (default is "all.q"):
 
-    $ d2stat -submit=sleep -name=MySleeperJob -arg=77 -queue=all.q
+    $ uc --cluster=cluster1 run --queue=all.q --name=MyName --arg=123 /bin/sleep
 
 #### List all hosts of default cluster:
 
-    $ d2stat -m=all
+    $ uc show machine
     
     HOSTNAME ARCH NSOC NCOR NTHR LOAD MEMTOT SWAPTO
     u1010 x64 1 4 4 0.080000 504184 911731
     ...
+
+#### Get full command description...
+
+    $ uc --help
+
+```sh
+usage: d2stat [<flags>] <command> [<flags>] [<args> ...]
+
+A tool which can interact with multiple compute clusters.
+
+Flags:
+ --help               Show help.
+ --verbose            Enables enhanced logging for debugging.
+ --cluster="default"  Cluster name to interact with.
+
+Commands:
+  help [<command>]
+    Show help for a command.
+
+  show job [<id>]
+    Information about a particular job.
+
+  show jobstate [<state>]
+    All jobs in a specific state (r/p/all).
+
+  show machine [<name>]
+    Information about compute hosts.
+
+  show queue [<name>]
+    Information about queues.
+
+  run [<flags>] <command>
+    Submits an application to a cluster.
+
+  config list
+    Lists all configured cluster proxies.
+```
