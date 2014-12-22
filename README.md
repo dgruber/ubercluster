@@ -5,9 +5,16 @@ Simple multi-clustering tool based on DRMAA2 (e.g. for Univa Grid Engine).
 
 ## Compilation
 
-Make sure you have the DRMAA2 Go binding (adding godep later...).
 Make sure you have a cluster scheduler supporting DRMAA2 C API (like Univa Grid Engine)
-installed.
+installed. This tool is working on top of the Go DRMAA2 API (which accesses the C API).
+Hence during compile/runtime the tool needs access to drmaa2.h (which comes with 
+Univa Grid Engine for example / $SGE_ROOT/include) and libdrmaa2.so ($SGE_ROOT/lib/lx-amd64).
+
+The Go dependecies can be get by calling:
+
+    godep restore 
+
+in the *cmd* subdirectories.
 
 Go to cmd/d2proxy
  
