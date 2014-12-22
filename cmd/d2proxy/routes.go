@@ -20,19 +20,19 @@ var routes = Routes{
 	Route{
 		"MonitoringSession",
 		"GET",
-		"/monitoring",
+		"/v1/monitoring",
 		monitoringSessionHandler,
 	},
 	Route{
 		"JobInfo",
 		"POST",
-		"/session",
+		"/v1/session",
 		jobSubmitHandler,
 	},
 	Route{
-		"jonid",
+		"jobid",
 		"GET",
-		"/jobid/{jobid}",
+		"/v1/jobid/{jobid}",
 		jobIdHandler,
 	},
 }

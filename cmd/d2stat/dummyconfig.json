@@ -1,1 +1,1 @@
-{"Cluster":[{"Name":"default","Address":"http://localhost:8888/"},{"Name":"cluster1","Address":"http://localhost:8282/"}]}
+{"Cluster":[{"Name":"default","Address":"http://localhost:8888/","ProtocolVersion":"v1"},{"Name":"cluster1","Address":"http://localhost:8282/","ProtocolVersion":"v1"}]}

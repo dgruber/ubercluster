@@ -25,8 +25,12 @@ import (
 	"os"
 )
 
+var verbose bool = true
+
 func init() {
-	log.SetOutput(ioutil.Discard)
+	if verbose == false {
+		log.SetOutput(ioutil.Discard)
+	}
 }
 
 func main() {

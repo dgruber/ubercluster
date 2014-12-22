@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Daniel Gruber
+   Copyright 2014 Daniel Gruber, Univa
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,54 +19,15 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"github.com/dgruber/drmaa2"
+	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
 )
-
-// configuration for proxies of compute clusters which can be queried
-var config Config
-
-type ClusterConfig struct {
-	// name to reference the cluster in this tool ("default" is 
-	// the address used when no cluster is explicitly referenced
-	Name string
-	// like: http://myhost:8888
-	Address string
-}
-
-// Complete configuration
-type Config struct {
-	// Multiple endpoints of proxies can be defined
-	Cluster []ClusterConfig
-}
-
-// saveDummyConfig creates a file dummyconfig.json in order
-// to help the user to create a configuration file (config.json)
-// in the right JSON format. "default" and "cluster1" are 
-// user defined names for the cluster, while the address is 
-// the endpoint of the proxy.
-func saveDummyConfig() {
-	if file, err := os.Create("dummyconfig.json"); err == nil {
-		encoder := json.NewEncoder(file)
-		var config Config
-		config.Cluster = make([]ClusterConfig, 0)
-		var def, cluster ClusterConfig
-		def.Name = "default"
-		def.Address = "http://localhost:8888/"
-		cluster.Name = "cluster1"
-		cluster.Address = "http://localhost:8282/"
-		config.Cluster = append(config.Cluster, def)
-		config.Cluster = append(config.Cluster, cluster)
-		encoder.Encode(config)
-		file.Close()
-	}
-}
 
 // Disable logging by default
 func init() {
@@ -141,8 +102,8 @@ func showJobDetails(clustername, jobid string) {
 	}
 }
 
-func showJobsInState(clustername, state string) {
-	request := fmt.Sprintf("%s%s%s", clustername, "/monitoring?state=", state)
+func showJobsInState(clusteraddress, state string) {
+	request := fmt.Sprintf("%s%s%s", clusteraddress, "/monitoring?state=", state)
 	log.Println("Requesting:" + request)
 	resp, err := http.Get(request)
 	if err != nil {
@@ -165,7 +126,7 @@ func showJobsInState(clustername, state string) {
 }
 
 // submitJob creates a new job in the given cluster
-func submitJob(clustername, jobname, cmd, arg, queue string) {
+func submitJob(clusteraddress, jobname, cmd, arg, queue string) {
 	var jt drmaa2.JobTemplate
 	// fill a DRMAA2 job template and send it over to the proxy
 	jt.RemoteCommand = cmd
@@ -177,7 +138,7 @@ func submitJob(clustername, jobname, cmd, arg, queue string) {
 	jtb, _ := json.Marshal(jt)
 
 	// create URL of cluster to send the job to
-	url := fmt.Sprintf("%s%s", clustername, "/session")
+	url := fmt.Sprintf("%s%s", clusteraddress, "/session")
 
 	log.Println("Submit template: ", string(jtb))
 	if resp, err := http.Post(url, "application/json", bytes.NewBuffer(jtb)); err != nil {
@@ -195,8 +156,8 @@ func showMachines(clustername, machine string) {
 	showMachinesQueues(clustername, "machines", machine)
 }
 
-func showMachinesQueues(clustername, req, filter string) {
-	request := fmt.Sprintf("%s/monitoring?%s=%s", clustername, req, filter)
+func showMachinesQueues(clusteraddress, req, filter string) {
+	request := fmt.Sprintf("%s/monitoring?%s=%s", clusteraddress, req, filter)
 	log.Println("Requesting:" + request)
 	resp, err := http.Get(request)
 	if err != nil {
@@ -228,71 +189,88 @@ func showMachinesQueues(clustername, req, filter string) {
 	}
 }
 
-func main() {
-	f := flag.NewFlagSet("d2stat", flag.ExitOnError)
-	verbose := f.String("v", "", "Turns on logging for debugging (v).")
-	jobid := f.String("j", "0", "Displays information about a particular job or \"all\"")
-	state := f.String("s", "", "Show all jobs with a certain state (r/f/p..)")
-	machine := f.String("m", "", "Shows details of the compute machine of the cluster")
-	queue := f.String("q", "", "Lists all available queues from the cluster scheduler")
-	cluster := f.String("c", "default", "Defines the cluster name on which the operation is performed on.")
-	submit := f.String("submit", "", "Submits that job into the given cluster.")
-	arg := f.String("arg", "", "Argument of the command which is submitted.")
-	name := f.String("name", "", "Name of the job which is submitted.")
-	q := f.String("queue", "", "Queue name when submitting job.")
-	// ... JSDL?
-	saveDummyConfig()
-
-	if len(os.Args) <= 1 {
-		fmt.Println("Unknown arguments. Try -help ...")
-		os.Exit(2)
-		return
-	}
-
-	if *verbose != "" {
-		log.SetOutput(os.Stdout)
-	}
-
-	// read in configuration
-	if file, err := os.Open("config.json"); err != nil {
-		fmt.Println("Can't read configuration (config.json) file.")
-		os.Exit(1)
-	} else {
-		decoder := json.NewDecoder(file)
-		decoder.Decode(&config)
-		log.Println(config)
-	}
-
-	// parse command line
-	if err := f.Parse(os.Args[1:]); err != nil {
-		fmt.Println("Error during parsing: ", err)
-		os.Exit(2)
-	}
-
-	// select cluster
+// setClusterAddress searches the address of the cluster to contact to
+// in the configuration ("default" point to default cluster)
+func getClusterAddress(cluster string) string {
 	var clusteraddress string
 	for i, _ := range config.Cluster {
-		if *cluster == config.Cluster[i].Name {
+		if cluster == config.Cluster[i].Name {
 			clusteraddress = config.Cluster[i].Address
+			clusteraddress = fmt.Sprintf("%s/%s", clusteraddress, config.Cluster[i].ProtocolVersion)
+			break
 		}
 	}
 	if clusteraddress == "" {
-		fmt.Println("Cluster name %s not found in configuration.", *cluster)
+		fmt.Println("Cluster name %s not found in configuration.", cluster)
 		os.Exit(1)
 	}
+	return clusteraddress
+}
 
-	if *jobid != "0" {
-		showJobDetails(clusteraddress, *jobid)
-	} else if *state != "" {
-		showJobsInState(clusteraddress, *state)
-	} else if *queue != "" {
-		showQueues(clusteraddress, *queue)
-	} else if *submit != "" {
-		submitJob(clusteraddress, *name, *submit, *arg, *q)
-	} else if *machine != "" {
-		fmt.Fprintf(os.Stdout, "HOSTNAME ARCH NSOC NCOR NTHR LOAD MEMTOT SWAPTO\n")
-		showMachines(clusteraddress, *machine)
-	} else {
-		f.Usage()
+var (
+	app     = kingpin.New("d2stat", "A tool which can interact with multiple compute clusters.")
+	verbose = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
+	cluster = app.Flag("cluster", "Cluster name to interact with.").Default("default").String()
+
+	show             = app.Command("show", "Displays information about connected clusters.")
+	showJob          = show.Command("job", "Information about a particular job.")
+	showJobId        = showJob.Arg("id", "Id of job").String()
+	showJobByState   = show.Command("jobstate", "All jobs in a specific state (r/p/all).")
+	showJobByStateId = showJobByState.Arg("state", "State of jobs to show.").Default("r").String()
+	showMachine      = show.Command("machine", "Information about compute hosts.")
+	showMachineName  = showMachine.Arg("name", "Name of machine (or \"all\" for all.").Default("all").String()
+	showQueue        = show.Command("queue", "Information about queues.")
+	showQueueName    = showQueue.Arg("name", "Name of queue to show.").Default("all").String()
+
+	run        = app.Command("run", "Submits an application to a cluster.")
+	runCommand = run.Arg("command", "Command to submit.").Required().String()
+	runArg     = run.Flag("arg", "Argument of the command.").Default("").String()
+	runName    = run.Flag("name", "Reference name of the command.").Default("").String()
+	runQueue   = run.Flag("queue", "Queue name in which to submit.").Default("").String()
+
+	cfg     = app.Command("config", "Configuration of cluster proxies.")
+	cfgList = cfg.Command("list", "Lists all configured cluster proxies.")
+)
+
+func main() {
+	p := kingpin.MustParse(app.Parse(os.Args[1:]))
+
+	if *verbose {
+		log.SetOutput(os.Stdout)
+	}
+	// save an config example
+	saveDummyConfig()
+	// read in configuration
+	readConfig()
+
+	// based on cluster name create the address to send requests
+	clusteraddress := getClusterAddress(*cluster)
+	if p == showJob.FullCommand() {
+		fmt.Println("show command selected")
+		if showJobId != nil && *showJobId != "" {
+			fmt.Println("show job details: ", *showJobId)
+			showJobDetails(clusteraddress, *showJobId)
+		} else {
+			fmt.Println("Job id misssing.")
+		}
+	}
+
+	if p == cfgList.FullCommand() {
+		listConfig(clusteraddress)
+	}
+
+	if p == showJobByState.FullCommand() {
+		showJobsInState(clusteraddress, *showJobByStateId)
+	}
+
+	if p == showMachine.FullCommand() {
+		showMachines(clusteraddress, *showMachineName)
+	}
+	if p == showQueue.FullCommand() {
+		showQueues(clusteraddress, *showQueueName)
+	}
+
+	if p == run.FullCommand() {
+		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue)
 	}
 }
