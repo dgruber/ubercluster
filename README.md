@@ -3,6 +3,8 @@ ubercluster
 
 Simple multi-clustering tool based on DRMAA2 (e.g. for Univa Grid Engine).
 
+![uc image](https://raw.githubusercontent.com/dgruber/ubercluster/master/img/uc.png)
+
 ## Compilation
 
 Make sure you have a cluster scheduler supporting DRMAA2 C API (like Univa Grid Engine)
