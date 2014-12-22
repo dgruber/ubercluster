@@ -16,13 +16,13 @@ The Go dependecies can be get by calling:
 
 in the *cmd* subdirectories.
 
-Go to cmd/d2proxy
+Go to ```cmd/d2proxy```
  
     $ source path/to/your/GE/installation
     $ ./build
 
 
-Go to cmd/d2stat
+Go to ```cmd/uc```
 
     $ source path/to/your/GE/installation
     $ ./build
