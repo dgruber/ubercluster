@@ -12,7 +12,7 @@ installed. This tool is working on top of the Go DRMAA2 API (which accesses the 
 Hence during compile/runtime the tool needs access to drmaa2.h (which comes with 
 Univa Grid Engine for example / $SGE_ROOT/include) and libdrmaa2.so ($SGE_ROOT/lib/lx-amd64).
 
-The Go dependecies can be get by calling:
+The Go dependencies can be get by calling:
 
     godep restore 
 
