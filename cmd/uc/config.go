@@ -68,3 +68,21 @@ func listConfig(clusteraddress string) {
 		fmt.Println(cc)
 	}
 }
+
+// setClusterAddress searches the address of the cluster to contact to
+// in the configuration ("default" point to default cluster)
+func getClusterAddress(cluster string) string {
+	var clusteraddress string
+	for i, _ := range config.Cluster {
+		if cluster == config.Cluster[i].Name {
+			clusteraddress = config.Cluster[i].Address
+			clusteraddress = fmt.Sprintf("%s%s", clusteraddress, config.Cluster[i].ProtocolVersion)
+			break
+		}
+	}
+	if clusteraddress == "" {
+		fmt.Println("Cluster name %s not found in configuration.", cluster)
+		os.Exit(1)
+	}
+	return clusteraddress
+}
