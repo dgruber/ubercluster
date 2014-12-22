@@ -1,7 +1,7 @@
 ubercluster
 ===========
 
-Simple multi-clustering tool based on DRMAA2 (e.g. for Univa Grid Engine).
+Simple multi-clustering tool based on an open standard for job submission and cluster monitoring (DRMAA2) (e.g. for Univa Grid Engine).
 
 ![uc image](https://raw.githubusercontent.com/dgruber/ubercluster/master/img/uc.png)
 
