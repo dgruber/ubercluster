@@ -93,6 +93,7 @@ func monitoringSessionHandler(w http.ResponseWriter, r *http.Request) {
 
 // Reads in JSON for DRMAA2 job template struct.
 func jobSubmitHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("(jobSubmitHandler)")
 	if body, err := ioutil.ReadAll(r.Body); err != nil {
 		log.Println("(proxy)", err)
 	} else {

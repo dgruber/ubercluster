@@ -24,7 +24,7 @@ var routes = Routes{
 		monitoringSessionHandler,
 	},
 	Route{
-		"JobInfo",
+		"JobSubmit",
 		"POST",
 		"/v1/session",
 		jobSubmitHandler,
