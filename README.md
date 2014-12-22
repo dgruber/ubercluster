@@ -93,7 +93,7 @@ The *config.json* file in **uc** directory needs to point to your cluster proxie
     $ uc --help
 
 ```sh
-usage: d2stat [<flags>] <command> [<flags>] [<args> ...]
+usage: uc [<flags>] <command> [<flags>] [<args> ...]
 
 A tool which can interact with multiple compute clusters.
 
