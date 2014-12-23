@@ -107,19 +107,16 @@ usage: uc [<flags>] <command> [<flags>] [<args> ...]
 A tool which can interact with multiple compute clusters.
 
 Flags:
- --help               Show help.
- --verbose            Enables enhanced logging for debugging.
- --cluster="default"  Cluster name to interact with.
+  --help               Show help.
+  --verbose            Enables enhanced logging for debugging.
+  --cluster="default"  Cluster name to interact with.
 
 Commands:
   help [<command>]
     Show help for a command.
 
-  show job [<id>]
+  show job [<flags>] [<id>]
     Information about a particular job.
-
-  show jobstate [<state>]
-    All jobs in a specific state (r/p/all).
 
   show machine [<name>]
     Information about compute hosts.
@@ -132,4 +129,19 @@ Commands:
 
   config list
     Lists all configured cluster proxies.
+```
+
+For detailed help on sub-commands:
+```
+uc show job --help
+usage: uc [<flags>] show job [<flags>] [<id>]
+
+Information about a particular job.
+
+Flags:
+  --state="all"  Show only jobs in that state (r/q/h/s/R/Rh/d/f/u/all).
+
+Args:
+  [<id>]  Id of job
+
 ```
