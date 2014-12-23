@@ -132,8 +132,10 @@ Commands:
 ```
 
 For detailed help on sub-commands:
+
+    $ uc show job --help
+    
 ```
-uc show job --help
 usage: uc [<flags>] show job [<flags>] [<id>]
 
 Information about a particular job.
