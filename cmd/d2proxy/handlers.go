@@ -1,3 +1,19 @@
+/*
+   Copyright 2014 Daniel Gruber, Univa
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 package main
 
 import (
@@ -10,27 +26,16 @@ import (
 	"net/http"
 )
 
-func jobIdHandler(w http.ResponseWriter, r *http.Request) {
+func msessionJobInfoHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if jobid := vars["jobid"]; jobid != "" {
 		if jobinfo := getJobInfo(ms, jobid); jobinfo != nil {
 			json.NewEncoder(w).Encode(jobinfo)
-		} // TODO not found
+		}
 	}
 }
 
 func monitoringSessionHandler(w http.ResponseWriter, r *http.Request) {
-	// get a job with a specific id
-	if jobid := r.FormValue("jobid"); jobid != "" {
-		if jobinfo := getJobInfo(ms, jobid); jobinfo != nil {
-			encoder := json.NewEncoder(w)
-			if err := encoder.Encode(jobinfo); err != nil {
-				log.Println("Encoding error: ", err)
-			}
-		}
-		return
-	}
-
 	// get all jobs in a certain state
 	if state := r.FormValue("state"); state != "" {
 		if jobinfo := getJobInfoByState(ms, state); jobinfo != nil {
@@ -58,36 +63,45 @@ func monitoringSessionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// get compute nodes of DRM
-	if machines := r.FormValue("machines"); machines != "" {
-		var filter []string
-		if machines == "all" {
-			filter = nil
-		} else {
-			filter = make([]string, 0, 0)
-			filter = append(filter, machines)
-		}
-		if machines, err := ms.GetAllMachines(filter); err == nil {
-			encoder := json.NewEncoder(w)
-			encoder.Encode(machines)
-		}
-	}
+}
 
-	// get queues of DRM
-	if queues := r.FormValue("queues"); queues != "" {
-		var filter []string
-		if queues == "all" {
-			filter = nil
-		} else {
-			filter = make([]string, 0, 0)
-			filter = append(filter, queues)
-		}
-		if qs, err := ms.GetAllQueues(filter); err == nil {
-			encoder := json.NewEncoder(w)
-			if err := encoder.Encode(qs); err != nil {
-				fmt.Println("Queue encode error: %s", err)
-			}
-		}
+func msessionMachinesHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("(msessionMachinesHandler)")
+	if machines, err := ms.GetAllMachines(nil); err == nil {
+		json.NewEncoder(w).Encode(machines)
+	} else {
+		log.Println("Error in GetAllMachines: ", err)
+	}
+}
+
+func msessionMachineHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("(msessionMachineHandler)")
+	vars := mux.Vars(r)
+	name := vars["name"]
+	if machines, err := ms.GetAllMachines([]string{name}); err == nil {
+		json.NewEncoder(w).Encode(machines)
+	} else {
+		log.Println("Error in GetAllMachines: ", err)
+	}
+}
+
+func msessionQueuesHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("(msessionQueuesHandler)")
+	if queues, err := ms.GetAllQueues(nil); err == nil {
+		json.NewEncoder(w).Encode(queues)
+	} else {
+		log.Println("Error in GetAllQueues: ", err)
+	}
+}
+
+func msessionQueueHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("(msessionQueueHandler)")
+	vars := mux.Vars(r)
+	name := vars["name"]
+	if machines, err := ms.GetAllQueues([]string{name}); err == nil {
+		json.NewEncoder(w).Encode(machines)
+	} else {
+		log.Println("Error in GetAllQueues: ", err)
 	}
 }
 

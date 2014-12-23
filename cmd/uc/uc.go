@@ -34,15 +34,14 @@ var (
 	verbose = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
 	cluster = app.Flag("cluster", "Cluster name to interact with.").Default("default").String()
 
-	show             = app.Command("show", "Displays information about connected clusters.")
-	showJob          = show.Command("job", "Information about a particular job.")
-	showJobId        = showJob.Arg("id", "Id of job").String()
-	showJobByState   = show.Command("jobstate", "All jobs in a specific state (r/p/all).")
-	showJobByStateId = showJobByState.Arg("state", "State of jobs to show.").Default("r").String()
-	showMachine      = show.Command("machine", "Information about compute hosts.")
-	showMachineName  = showMachine.Arg("name", "Name of machine (or \"all\" for all.").Default("all").String()
-	showQueue        = show.Command("queue", "Information about queues.")
-	showQueueName    = showQueue.Arg("name", "Name of queue to show.").Default("all").String()
+	show            = app.Command("show", "Displays information about connected clusters.")
+	showJob         = show.Command("job", "Information about a particular job.")
+	showJobStateId  = showJob.Flag("state", "Show only jobs in that state (r/q/h/s/R/Rh/d/f/u/all).").Default("all").String()
+	showJobId       = showJob.Arg("id", "Id of job").String()
+	showMachine     = show.Command("machine", "Information about compute hosts.")
+	showMachineName = showMachine.Arg("name", "Name of machine (or \"all\" for all.").Default("all").String()
+	showQueue       = show.Command("queue", "Information about queues.")
+	showQueueName   = showQueue.Arg("name", "Name of queue to show.").Default("all").String()
 
 	run        = app.Command("run", "Submits an application to a cluster.")
 	runCommand = run.Arg("command", "Command to submit.").Required().String()
@@ -68,20 +67,15 @@ func main() {
 	// based on cluster name create the address to send requests
 	clusteraddress := getClusterAddress(*cluster)
 	if p == showJob.FullCommand() {
-		fmt.Println("show command selected")
 		if showJobId != nil && *showJobId != "" {
-			fmt.Println("show job details: ", *showJobId)
 			showJobDetails(clusteraddress, *showJobId)
 		} else {
-			fmt.Println("Job id misssing.")
+			showJobsInState(clusteraddress, *showJobStateId)
 		}
 	}
 
 	if p == cfgList.FullCommand() {
 		listConfig(clusteraddress)
-	}
-	if p == showJobByState.FullCommand() {
-		showJobsInState(clusteraddress, *showJobByStateId)
 	}
 	if p == showMachine.FullCommand() {
 		showMachines(clusteraddress, *showMachineName)
