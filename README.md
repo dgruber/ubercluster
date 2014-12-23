@@ -59,7 +59,7 @@ The *config.json* file in **uc** directory needs to point to your cluster proxie
 
 #### List all running jobs of cluster "cluster1" (from config)
 
-    $ uc --cluster=default show job --state=r
+    $ uc --cluster=cluster1 show job --state=r
 
     job_number:		    3000000003
     state:			    Running
