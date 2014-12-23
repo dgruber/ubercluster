@@ -55,29 +55,29 @@ The *config.json* file in **uc** directory needs to point to your cluster proxie
 
 #### List all jobs of your default cluster
 
-    $ uc show jobstate all
+    $ uc show job
 
 #### List all running jobs of cluster "cluster1" (from config)
 
-    $ uc --cluster=cluster1 show jobstate r
+    $ uc --cluster=default show job --state=r
 
-    job_number:		3000000003
-    state:			Running
+    job_number:		    3000000003
+    state:			    Running
     submission_time:	2014-12-06 18:02:59 +0100 CET
     dispatch_time:		2014-12-06 18:03:00 +0100 CET
     finish_time:		-
-    owner:			daniel
-    slots:			1
+    owner:			    daniel
+    slots:			    1
     allocated_machines:	u1010
     exit_status:		-1
 
-    job_number:		3000000004
-    state:			Running
+    job_number:		    3000000004
+    state:			    Running
     submission_time:	2014-12-06 18:03:01 +0100 CET
     dispatch_time:		2014-12-06 18:03:10 +0100 CET
     finish_time:		-
-    owner:			daniel
-    slots:			1
+    owner:			    daniel
+    slots:			    1
     allocated_machines:	u1010
     exit_status:		-1
 
