@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dgruber/ubercluster.svg)](https://travis-ci.org/dgruber/ubercluster)
+
 ubercluster
 ===========
 
