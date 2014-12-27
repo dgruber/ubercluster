@@ -14,7 +14,7 @@ Hence during compile/runtime the tool needs access to drmaa2.h (which comes with
 
 Update: Removed DRMAA2 C dependencies from **uc** tool. Hence those requirements are only needed for the DRMAA2 proxy (**d2proxy**) tool.
 
-The Go dependencies can be get by calling:
+Note: The dependencies from other Go packages can be restored by:
 
     godep restore 
 
