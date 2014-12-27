@@ -18,19 +18,19 @@ package main
 
 import (
 	"fmt"
-	"github.com/dgruber/drmaa2"
+	"github.com/dgruber/ubercluster"
 	"os"
 	"time"
 )
 
 func makeDate(date time.Time) string {
-	if date.Unix() == drmaa2.UnsetTime {
+	if date.Unix() == ubercluster.UnsetTime {
 		return "-"
 	}
-	if date.Unix() == drmaa2.InfiniteTime {
+	if date.Unix() == ubercluster.InfiniteTime {
 		return "inf"
 	}
-	if date.Unix() == drmaa2.ZeroTime {
+	if date.Unix() == ubercluster.ZeroTime {
 		return "0"
 	}
 	return date.String()
@@ -38,7 +38,7 @@ func makeDate(date time.Time) string {
 
 // emulateQstat prints DRMAA2 JobInfo information on
 // stdout in a similar way than qstat -j (same keyes)
-func emulateQstat(ji drmaa2.JobInfo) {
+func emulateQstat(ji ubercluster.JobInfo) {
 	fmt.Fprintf(os.Stdout, "job_number:\t\t%s\n", ji.Id)
 	fmt.Fprintf(os.Stdout, "state:\t\t\t%s\n", ji.State)
 	fmt.Fprintf(os.Stdout, "submission_time:\t%s\n", makeDate(ji.SubmissionTime))
@@ -67,7 +67,7 @@ func emulateQstat(ji drmaa2.JobInfo) {
 }
 
 // emulateQhost prints machine information in SGE style out
-func emulateQhost(m drmaa2.Machine) {
+func emulateQhost(m ubercluster.Machine) {
 	fmt.Fprintf(os.Stdout, "%s %s %d %d %d %f %d %d\n", m.Name, m.Architecture.String(), m.Sockets,
 		m.Sockets*m.CoresPerSocket, m.Sockets*m.CoresPerSocket*m.ThreadsPerCore, m.Load,
 		m.PhysicalMemory, m.VirtualMemory)

@@ -105,6 +105,24 @@ func msessionQueueHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func msessionDRMSNameHandler(w http.ResponseWriter, r *http.Request) {
+	var sm drmaa2.SessionManager
+	if name, err := sm.GetDrmsName(); err == nil {
+		json.NewEncoder(w).Encode(name)
+	} else {
+		log.Println("Error in SessionManager.GetDrmsName(): ", err)
+	}
+}
+
+func msessionDRMSVersionHandler(w http.ResponseWriter, r *http.Request) {
+	var sm drmaa2.SessionManager
+	if version, err := sm.GetDrmsVersion(); err == nil {
+		json.NewEncoder(w).Encode(version.String())
+	} else {
+		log.Println("Error in SessionManager.GetDrmsVersion(): ", err)
+	}
+}
+
 // Reads in JSON for DRMAA2 job template struct.
 func jobSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("(jobSubmitHandler)")

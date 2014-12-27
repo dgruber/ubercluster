@@ -43,11 +43,12 @@ var (
 	showQueue       = show.Command("queue", "Information about queues.")
 	showQueueName   = showQueue.Arg("name", "Name of queue to show.").Default("all").String()
 
-	run        = app.Command("run", "Submits an application to a cluster.")
-	runCommand = run.Arg("command", "Command to submit.").Required().String()
-	runArg     = run.Flag("arg", "Argument of the command.").Default("").String()
-	runName    = run.Flag("name", "Reference name of the command.").Default("").String()
-	runQueue   = run.Flag("queue", "Queue name in which to submit.").Default("").String()
+	run         = app.Command("run", "Submits an application to a cluster.")
+	runCommand  = run.Arg("command", "Command to submit.").Required().String()
+	runArg      = run.Flag("arg", "Argument of the command.").Default("").String()
+	runName     = run.Flag("name", "Reference name of the command.").Default("").String()
+	runQueue    = run.Flag("queue", "Queue name for the job.").Default("").String()
+	runCategory = run.Flag("category", "Job category / job class for the job.").Default("").String()
 
 	cfg     = app.Command("config", "Configuration of cluster proxies.")
 	cfgList = cfg.Command("list", "Lists all configured cluster proxies.")
@@ -84,8 +85,7 @@ func main() {
 		showQueues(clusteraddress, *showQueueName)
 	}
 	if p == run.FullCommand() {
-		fmt.Println("submit")
-		fmt.Println(*runName, *runCommand, *runArg, *runQueue)
-		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue)
+		fmt.Println("Submitting job")
+		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory)
 	}
 }

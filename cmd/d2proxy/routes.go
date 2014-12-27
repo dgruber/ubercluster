@@ -18,46 +18,31 @@ type Route struct {
 
 var routes = Routes{
 	Route{
-		"MonitoringSession",
-		"GET",
-		"/v1/monitoring",
-		monitoringSessionHandler,
+		"MonitoringSession", "GET", "/v1/monitoring", monitoringSessionHandler,
 	},
 	Route{
-		"JobSubmit",
-		"POST",
-		"/v1/jsession/default/run",
-		jobSubmitHandler,
+		"JobSubmit", "POST", "/v1/jsession/default/run", jobSubmitHandler,
 	},
 	Route{
-		"jobid",
-		"GET",
-		"/v1/msession/jobinfo/{jobid}",
-		msessionJobInfoHandler,
+		"jobid", "GET", "/v1/msession/jobinfo/{jobid}", msessionJobInfoHandler,
 	},
 	Route{
-		"msessionMachines",
-		"GET",
-		"/v1/msession/machines",
-		msessionMachinesHandler,
+		"msessionMachines", "GET", "/v1/msession/machines", msessionMachinesHandler,
 	},
 	Route{
-		"msessionMachine",
-		"GET",
-		"/v1/msession/machine/{name}",
-		msessionMachineHandler,
+		"msessionMachine", "GET", "/v1/msession/machine/{name}", msessionMachineHandler,
 	},
 	Route{
-		"msessionQueues",
-		"GET",
-		"/v1/msession/queues",
-		msessionQueuesHandler,
+		"msessionQueues", "GET", "/v1/msession/queues", msessionQueuesHandler,
 	},
 	Route{
-		"msessionMachine",
-		"GET",
-		"/v1/msession/queue/{name}",
-		msessionQueueHandler,
+		"msessionMachine", "GET", "/v1/msession/queue/{name}", msessionQueueHandler,
+	},
+	Route{
+		"msessionDRMSName", "GET", "/v1/msession/drmsname", msessionDRMSNameHandler,
+	},
+	Route{
+		"msessionDRMSVersion", "GET", "/v1/msession/drmsversion", msessionDRMSVersionHandler,
 	},
 }
 

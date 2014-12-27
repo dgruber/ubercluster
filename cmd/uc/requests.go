@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/dgruber/drmaa2"
+	"github.com/dgruber/ubercluster"
 	"log"
 	"net/http"
 	"os"
@@ -37,7 +37,7 @@ func showJobDetails(clustername, jobid string) {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
-	var jobinfo drmaa2.JobInfo
+	var jobinfo ubercluster.JobInfo
 	if err := decoder.Decode(&jobinfo); err == nil {
 		// here formating rules
 		emulateQstat(jobinfo)
@@ -55,7 +55,7 @@ func showJobsInState(clusteraddress, state string) {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
-	var joblist []drmaa2.JobInfo
+	var joblist []ubercluster.JobInfo
 	decoder.Decode(&joblist)
 	// here formating rules
 	for index, _ := range joblist {
@@ -68,8 +68,8 @@ func showJobsInState(clusteraddress, state string) {
 }
 
 // submitJob creates a new job in the given cluster
-func submitJob(clusteraddress, jobname, cmd, arg, queue string) {
-	var jt drmaa2.JobTemplate
+func submitJob(clusteraddress, jobname, cmd, arg, queue, category string) {
+	var jt ubercluster.JobTemplate
 	// fill a DRMAA2 job template and send it over to the proxy
 	jt.RemoteCommand = cmd
 	jt.JobName = jobname
@@ -77,6 +77,9 @@ func submitJob(clusteraddress, jobname, cmd, arg, queue string) {
 		jt.Args = []string{arg}
 	}
 	jt.QueueName = queue
+	if category != "" {
+		jt.JobCategory = category
+	}
 	jtb, _ := json.Marshal(jt)
 
 	// create URL of cluster to send the job to
@@ -120,9 +123,8 @@ func showMachinesQueues(clusteraddress, req, filter string) {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
-
 	if req == "machines" {
-		var machinelist []drmaa2.Machine
+		var machinelist []ubercluster.Machine
 		if err := decoder.Decode(&machinelist); err != nil {
 			fmt.Println("Error during decoding: ", err)
 			os.Exit(1)
@@ -131,7 +133,7 @@ func showMachinesQueues(clusteraddress, req, filter string) {
 			emulateQhost(machinelist[index])
 		}
 	} else if req == "queues" {
-		var queuelist []drmaa2.Queue
+		var queuelist []ubercluster.Queue
 		if err := decoder.Decode(&queuelist); err != nil {
 			fmt.Println("Error during decoding: ", err)
 			os.Exit(1)
