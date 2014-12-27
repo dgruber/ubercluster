@@ -12,6 +12,8 @@ installed. This tool is working on top of the [Go DRMAA2 API](https://github.com
 Hence during compile/runtime the tool needs access to drmaa2.h (which comes with 
 [Univa Grid Engine](http://www.univa.com/resources/univa-grid-engine-trial.php) for example / $SGE_ROOT/include) and libdrmaa2.so ($SGE_ROOT/lib/lx-amd64).
 
+Update: Removed DRMAA2 C dependencies from **uc** tool. Hence those requirements are only needed for the DRMAA2 proxy (**d2proxy**) tool.
+
 The Go dependencies can be get by calling:
 
     godep restore 
@@ -26,8 +28,7 @@ Go to ```cmd/d2proxy```
 
 Go to ```cmd/uc```
 
-    $ source path/to/your/GE/installation
-    $ ./build
+    $ godep go install
 
 ## Example usage
 
