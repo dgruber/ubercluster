@@ -48,7 +48,7 @@ var (
 	runArg      = run.Flag("arg", "Argument of the command.").Default("").String()
 	runName     = run.Flag("name", "Reference name of the command.").Default("").String()
 	runQueue    = run.Flag("queue", "Queue name for the job.").Default("").String()
-	runCategory = run.Flag("category", "Job category / job class for the job.").Default("").String()
+	runCategory = run.Flag("category", "Job category / job class of the job.").Default("").String()
 
 	cfg     = app.Command("config", "Configuration of cluster proxies.")
 	cfgList = cfg.Command("list", "Lists all configured cluster proxies.")
