@@ -55,29 +55,29 @@ The *config.json* file in **uc** directory needs to point to your cluster proxie
 
 #### List all jobs of your default cluster
 
-    $ uc show jobstate all
+    $ uc show job
 
 #### List all running jobs of cluster "cluster1" (from config)
 
-    $ uc --cluster=cluster1 show jobstate r
+    $ uc --cluster=cluster1 show job --state=r
 
-    job_number:		3000000003
-    state:			Running
+    job_number:		    3000000003
+    state:			    Running
     submission_time:	2014-12-06 18:02:59 +0100 CET
     dispatch_time:		2014-12-06 18:03:00 +0100 CET
     finish_time:		-
-    owner:			daniel
-    slots:			1
+    owner:			    daniel
+    slots:			    1
     allocated_machines:	u1010
     exit_status:		-1
 
-    job_number:		3000000004
-    state:			Running
+    job_number:		    3000000004
+    state:			    Running
     submission_time:	2014-12-06 18:03:01 +0100 CET
     dispatch_time:		2014-12-06 18:03:10 +0100 CET
     finish_time:		-
-    owner:			daniel
-    slots:			1
+    owner:			    daniel
+    slots:			    1
     allocated_machines:	u1010
     exit_status:		-1
 
@@ -107,19 +107,16 @@ usage: uc [<flags>] <command> [<flags>] [<args> ...]
 A tool which can interact with multiple compute clusters.
 
 Flags:
- --help               Show help.
- --verbose            Enables enhanced logging for debugging.
- --cluster="default"  Cluster name to interact with.
+  --help               Show help.
+  --verbose            Enables enhanced logging for debugging.
+  --cluster="default"  Cluster name to interact with.
 
 Commands:
   help [<command>]
     Show help for a command.
 
-  show job [<id>]
+  show job [<flags>] [<id>]
     Information about a particular job.
-
-  show jobstate [<state>]
-    All jobs in a specific state (r/p/all).
 
   show machine [<name>]
     Information about compute hosts.
@@ -132,4 +129,21 @@ Commands:
 
   config list
     Lists all configured cluster proxies.
+```
+
+For detailed help on sub-commands:
+
+    $ uc show job --help
+    
+```
+usage: uc [<flags>] show job [<flags>] [<id>]
+
+Information about a particular job.
+
+Flags:
+  --state="all"  Show only jobs in that state (r/q/h/s/R/Rh/d/f/u/all).
+
+Args:
+  [<id>]  Id of job
+
 ```
