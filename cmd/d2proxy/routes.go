@@ -24,6 +24,9 @@ var routes = Routes{
 		"JobSubmit", "POST", "/v1/jsession/default/run", jobSubmitHandler,
 	},
 	Route{
+		"msessionJobInfos", "GET", "/v1/msession/jobinfos", msessionJobInfosHandler,
+	},
+	Route{
 		"jobid", "GET", "/v1/msession/jobinfo/{jobid}", msessionJobInfoHandler,
 	},
 	Route{

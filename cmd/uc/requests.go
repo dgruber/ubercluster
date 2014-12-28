@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Daniel Gruber, Univa
+   Copyright 2014 Daniel Gruber, Univa, My blog: http://www.gridengine.eu
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -44,8 +44,21 @@ func showJobDetails(clustername, jobid string) {
 	}
 }
 
-func showJobsInState(clusteraddress, state string) {
-	request := fmt.Sprintf("%s%s%s", clusteraddress, "/monitoring?state=", state)
+func showJobs(clusteraddress, state, user string) {
+	firstSet := false
+	request := fmt.Sprintf("%s%s", clusteraddress, "/msession/jobinfos")
+	if state != "" && state != "all" {
+		firstSet = true
+		request = fmt.Sprintf("%s%s%s", request, "?state=", state)
+	}
+	if user != "" {
+		if firstSet == true {
+			request = fmt.Sprintf("%s%s", request, "&")
+		} else {
+			request = fmt.Sprintf("%s%s", request, "?")
+		}
+		request = fmt.Sprintf("%s%s%s", request, "user=", user)
+	}
 	log.Println("Requesting:" + request)
 	resp, err := http.Get(request)
 	if err != nil {

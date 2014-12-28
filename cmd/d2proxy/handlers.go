@@ -26,6 +26,57 @@ import (
 	"net/http"
 )
 
+func getDRMAA2JobState(state string) drmaa2.JobState {
+	switch state {
+	case "r":
+		return drmaa2.Running
+	case "q":
+		return drmaa2.Queued
+	case "h":
+		return drmaa2.QueuedHeld
+	case "s":
+		return drmaa2.Suspended
+	case "R":
+		return drmaa2.Requeued
+	case "Rh":
+		return drmaa2.RequeuedHeld
+	case "d":
+		return drmaa2.Done
+	case "f":
+		return drmaa2.Failed
+	case "u":
+		return drmaa2.Undetermined
+	}
+	return drmaa2.Undetermined
+}
+
+func msessionJobInfosHandler(w http.ResponseWriter, r *http.Request) {
+	filterSet := false
+	var ji *drmaa2.JobInfo
+	filter := drmaa2.CreateJobInfo()
+	if state := r.FormValue("state"); state != "all" && state != "" {
+		filter.State = getDRMAA2JobState(state)
+		log.Println("filter for state: ", filter.State)
+		filterSet = true
+	}
+	if user := r.FormValue("user"); user != "" {
+		filter.JobOwner = user
+		log.Println("filter for user: ", filter.JobOwner)
+		filterSet = true
+	}
+	if filterSet == true {
+		ji = &filter
+	}
+	if jobinfos := getJobInfosByFilter(ms, ji); jobinfos != nil {
+		encoder := json.NewEncoder(w)
+		if err := encoder.Encode(jobinfos); err != nil {
+			fmt.Println("Encoding error: ", err)
+		} else {
+			log.Println("Encoded: ", jobinfos)
+		}
+	}
+}
+
 func msessionJobInfoHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if jobid := vars["jobid"]; jobid != "" {

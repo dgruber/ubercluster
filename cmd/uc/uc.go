@@ -37,7 +37,8 @@ var (
 	show            = app.Command("show", "Displays information about connected clusters.")
 	showJob         = show.Command("job", "Information about a particular job.")
 	showJobStateId  = showJob.Flag("state", "Show only jobs in that state (r/q/h/s/R/Rh/d/f/u/all).").Default("all").String()
-	showJobId       = showJob.Arg("id", "Id of job").String()
+	showJobId       = showJob.Arg("id", "Id of job").Default("").String()
+	showJobUser     = showJob.Flag("user", "Shows only jobs of a particular user.").Default("").String()
 	showMachine     = show.Command("machine", "Information about compute hosts.")
 	showMachineName = showMachine.Arg("name", "Name of machine (or \"all\" for all.").Default("all").String()
 	showQueue       = show.Command("queue", "Information about queues.")
@@ -69,9 +70,10 @@ func main() {
 	clusteraddress := getClusterAddress(*cluster)
 	if p == showJob.FullCommand() {
 		if showJobId != nil && *showJobId != "" {
+			log.Println("showJobId: ", *showJobId)
 			showJobDetails(clusteraddress, *showJobId)
 		} else {
-			showJobsInState(clusteraddress, *showJobStateId)
+			showJobs(clusteraddress, *showJobStateId, *showJobUser)
 		}
 	}
 
