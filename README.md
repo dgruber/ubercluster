@@ -48,7 +48,7 @@ or for listening on port 8282
 
 Example:
 
-    $ firefox http://localhost:8888/v1/monitoring?jobs=all
+    $ firefox http://localhost:8888/v1/msession/jobinfos
 
 ### Update config.json 
 
