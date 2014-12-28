@@ -6,6 +6,8 @@ go:
   
 install: 
   - go get github.com/tools/godep
-  - "./cmd/uc/build.sh"
+  - cd ./cmd/uc/
+  - godep go install
+  - cd ../..
 
 script: "./travis-tests.sh"
