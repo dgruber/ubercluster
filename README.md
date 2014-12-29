@@ -130,6 +130,15 @@ Commands:
   run [<flags>] <command>
     Submits an application to a cluster.
 
+  terminate job [<jobid>]
+    Terminates (ends) a job in a cluster.
+
+  suspend job [<jobid>]
+    Suspends (pauses) a job in a cluster.
+
+  resume job [<jobid>]
+    Resumes a suspended job in a cluster.
+
   config list
     Lists all configured cluster proxies.
 ```
