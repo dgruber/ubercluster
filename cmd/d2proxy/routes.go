@@ -17,11 +17,16 @@ type Route struct {
 }
 
 var routes = Routes{
+	// TODO remove monitoring
 	Route{
 		"MonitoringSession", "GET", "/v1/monitoring", monitoringSessionHandler,
 	},
 	Route{
 		"JobSubmit", "POST", "/v1/jsession/default/run", jobSubmitHandler,
+	},
+	// Operations are: suspend resume delete (hold / release)
+	Route{
+		"JobManipulation", "POST", "/v1/jsession/{jsname}/{operation}/{jobid}", jobManipulationHandler,
 	},
 	Route{
 		"msessionJobInfos", "GET", "/v1/msession/jobinfos", msessionJobInfosHandler,

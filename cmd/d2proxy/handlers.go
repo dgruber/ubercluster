@@ -197,3 +197,54 @@ func jobSubmitHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+func jobManipulationHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name := vars["jsname"]
+	operation := vars["operation"]
+	jobid := vars["jobid"]
+	log.Println("(jobManipulationHandler) called with: ", name, operation, jobid)
+
+	// job session name must be the one created by d2proxy
+	if name != JobSessionName {
+		json.NewEncoder(w).Encode("invalid job session name")
+		return
+	}
+	// The filter is missing in GetJobs() hence until this is
+	// fixed in Go DRMAA2 we use a non-scaling method and do
+	// filtering on our own.
+	if jobs, err := js.GetJobs(); err != nil {
+		json.NewEncoder(w).Encode(err)
+		return
+	} else {
+		for _, job := range jobs {
+			if job.GetId() == jobid {
+				switch operation {
+				case "suspend":
+					if err := job.Suspend(); err != nil {
+						json.NewEncoder(w).Encode(err)
+					} else {
+						json.NewEncoder(w).Encode("success")
+					}
+				case "resume":
+					if err := job.Resume(); err != nil {
+						json.NewEncoder(w).Encode(err)
+					} else {
+						json.NewEncoder(w).Encode("success")
+					}
+				case "terminate":
+					if err := job.Terminate(); err != nil {
+						json.NewEncoder(w).Encode(err)
+					} else {
+						json.NewEncoder(w).Encode("success")
+					}
+				default:
+					json.NewEncoder(w).Encode("invalid operation")
+
+				}
+				return
+			}
+		}
+	}
+	json.NewEncoder(w).Encode("job not found")
+}

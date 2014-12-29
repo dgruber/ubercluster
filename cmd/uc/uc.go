@@ -17,7 +17,6 @@
 package main
 
 import (
-	"fmt"
 	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
 	"log"
@@ -51,6 +50,20 @@ var (
 	runQueue    = run.Flag("queue", "Queue name for the job.").Default("").String()
 	runCategory = run.Flag("category", "Job category / job class of the job.").Default("").String()
 
+	// operations on job
+	terminate      = app.Command("terminate", "Terminate operation.")
+	terminateJob   = terminate.Command("job", "Terminates (ends) a job in a cluster.")
+	terminateJobId = terminateJob.Arg("jobid", "Id of the job to terminate.").Default("").String()
+
+	suspend      = app.Command("suspend", "Suspend operation.")
+	suspendJob   = suspend.Command("job", "Suspends (pauses) a job in a cluster.")
+	suspendJobId = suspendJob.Arg("jobid", "Id of the job to suspend.").Default("").String()
+
+	resume      = app.Command("resume", "Resume operation.")
+	resumeJob   = resume.Command("job", "Resumes a suspended job in a cluster.")
+	resumeJobId = resumeJob.Arg("jobid", "Id of the job to resume.").Default("").String()
+
+	// configuration
 	cfg     = app.Command("config", "Configuration of cluster proxies.")
 	cfgList = cfg.Command("list", "Lists all configured cluster proxies.")
 )
@@ -68,26 +81,28 @@ func main() {
 
 	// based on cluster name create the address to send requests
 	clusteraddress := getClusterAddress(*cluster)
-	if p == showJob.FullCommand() {
+
+	switch p {
+	case showJob.FullCommand():
 		if showJobId != nil && *showJobId != "" {
 			log.Println("showJobId: ", *showJobId)
 			showJobDetails(clusteraddress, *showJobId)
 		} else {
 			showJobs(clusteraddress, *showJobStateId, *showJobUser)
 		}
-	}
-
-	if p == cfgList.FullCommand() {
+	case cfgList.FullCommand():
 		listConfig(clusteraddress)
-	}
-	if p == showMachine.FullCommand() {
+	case showMachine.FullCommand():
 		showMachines(clusteraddress, *showMachineName)
-	}
-	if p == showQueue.FullCommand() {
+	case showQueue.FullCommand():
 		showQueues(clusteraddress, *showQueueName)
-	}
-	if p == run.FullCommand() {
-		fmt.Println("Submitting job")
+	case run.FullCommand():
 		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory)
+	case terminateJob.FullCommand():
+		performOperation(clusteraddress, "ubercluster", "terminate", *terminateJobId)
+	case suspendJob.FullCommand():
+		performOperation(clusteraddress, "ubercluster", "suspend", *suspendJobId)
+	case resumeJob.FullCommand():
+		performOperation(clusteraddress, "ubercluster", "resume", *resumeJobId)
 	}
 }

@@ -35,7 +35,7 @@ func initializeDRMAA2(jsName string) error {
 	}
 
 	if js, err = sm.CreateJobSession(jsName, ""); err != nil {
-		log.Println("(proxy): Job session proxySession exists already. Reopen it.")
+		log.Println("(proxy): Job session ", jsName, " exists already. Reopen it.")
 		if js, err = sm.OpenJobSession(jsName); err != nil {
 			log.Fatal("(proxy): Couldn't open job session: ", err)
 		}

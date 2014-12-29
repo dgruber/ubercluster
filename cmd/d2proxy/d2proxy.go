@@ -26,6 +26,7 @@ import (
 )
 
 var verbose bool = true
+var JobSessionName = "ubercluster"
 
 func init() {
 	if verbose == false {
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	// Open MonitoringSession and create a JobSession with the given name
-	initializeDRMAA2("proxy_jsession")
+	initializeDRMAA2(JobSessionName)
 
 	// Start Proxy
 	if err := http.ListenAndServe(*p, NewProxyRouter()); err != nil {

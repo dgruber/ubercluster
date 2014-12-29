@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgruber/ubercluster"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -154,5 +155,22 @@ func showMachinesQueues(clusteraddress, req, filter string) {
 		for index, _ := range queuelist {
 			fmt.Println(queuelist[index].Name)
 		}
+	}
+}
+
+// performOperation sends request to perform an operation on a particular
+// job to a connected cluster (to its proxy).
+// The request url is: jsession/<jobsessionname>/<operation>/jobnumber
+func performOperation(clusteraddress, jsession, operation, jobId string) {
+	url := fmt.Sprintf("%s/jsession/%s/%s/%s", clusteraddress, jsession, operation, jobId)
+	log.Println("Requesting:" + url)
+	buffer := bytes.NewBuffer([]byte(""))
+	if resp, err := http.Post(url, "application/json", buffer); err != nil {
+		fmt.Println("Error during post: ", err)
+	} else {
+		log.Println("Status of request:", resp.Status)
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println(string(body))
 	}
 }
