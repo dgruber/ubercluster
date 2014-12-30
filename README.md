@@ -88,7 +88,7 @@ The *config.json* file in **uc** directory needs to point to your cluster proxie
 
     $ uc --cluster=cluster1 run --queue=all.q --name=MyName --arg=123 /bin/sleep
     
-### ...more submission command parameters
+#### ...more submission command parameters
 
 Since submission commands are never enough, always needs to be extended, ..., and are different between versions of cluster schedulers let's keep it simple. **uc** supports DRMAA2 job categories, which are names referencing a particular set of submission parameters. **Univa Grid Engine >= 8.2** encodes job categories as job classes. In **uc** you can request such job categories / classes with the **--category** parameter.
 
