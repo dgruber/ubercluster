@@ -17,15 +17,15 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 )
 
-var verbose bool = true
+var verbose bool = false
 var JobSessionName = "ubercluster"
 
 func init() {
@@ -34,24 +34,36 @@ func init() {
 	}
 }
 
-func main() {
-	// Port number where proxy listens
-	f := flag.NewFlagSet("d2proxy", flag.ExitOnError)
-	p := f.String("port", ":8888", "Sets address and port on which proxy is listening. (default :8888)")
+var (
+	app        = kingpin.New("d2proxy", "A proxy server for DRMAA2 compatible cluster schedulers (like Univa Grid Engine).")
+	cliVerbose = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
+	cliPort    = app.Flag("port", "Sets address and port on which proxy is listening.").Default(":8888").String()
+	certFile   = app.Flag("certFile", "Path to certification file for secure connections (TLS).").Default("").String()
+	keyFile    = app.Flag("keyFile", "Path to key file for secure connections (TLS).").Default("").String()
+)
 
-	if len(os.Args) > 1 {
-		if err := f.Parse(os.Args[1:]); err != nil {
-			fmt.Println("Error during parsing: ", err)
-			os.Exit(2)
-		}
+func main() {
+	kingpin.MustParse(app.Parse(os.Args[1:]))
+
+	if *cliVerbose {
+		log.SetOutput(os.Stdout)
 	}
+
+	// read-in config
+	initializeD2Proxy()
 
 	// Open MonitoringSession and create a JobSession with the given name
 	initializeDRMAA2(JobSessionName)
 
-	// Start Proxy
-	if err := http.ListenAndServe(*p, NewProxyRouter()); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	if *certFile != "" && *keyFile != "" {
+		if err := http.ListenAndServeTLS(*cliPort, *certFile, *keyFile, NewProxyRouter()); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	} else {
+		if err := http.ListenAndServe(*cliPort, NewProxyRouter()); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 }

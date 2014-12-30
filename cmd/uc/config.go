@@ -70,7 +70,13 @@ func saveDummyConfig() {
 
 func readConfig() {
 	viper.SetConfigName("config")
+	// check local directory first
 	viper.AddConfigPath("./")
+	// then home directory
+	viper.AddConfigPath("$HOME/.ubercluster/")
+	// finally /etc
+	viper.AddConfigPath("/etc/ubercluster/")
+
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Error reading in config file. ", err)
 		os.Exit(1)
