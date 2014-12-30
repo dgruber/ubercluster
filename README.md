@@ -1,9 +1,11 @@
-[![Build Status](https://travis-ci.org/dgruber/ubercluster.svg)](https://travis-ci.org/dgruber/ubercluster)
-
 ubercluster
 ===========
 
-Simple multi-clustering tool based on an open standard for job submission and cluster monitoring ([DRMAA2](http://www.drmaa.org)). Works on top of supported cluster schedulers, like Univa Grid Engine.
+Simple multi-clustering tool based on an open standard for job submission and cluster monitoring ([DRMAA2](http://www.drmaa.org)). Works on top of supported cluster schedulers, like **Univa Grid Engine**.
+
+It consists of following components:
+- **uc** [![Build Status](https://travis-ci.org/dgruber/ubercluster.svg)](https://travis-ci.org/dgruber/ubercluster): Main command line tool to interact with the compute clusters (show status / start jobs). Pure Go - can run everywhere where you can compile Go (MacOS / Linux / Windows / ...). Communicates with proxies.
+- **d2proxy**: Proxy which runs on a submit host of a compute cluster (Grid Engine cluster). Based on Go DRMAA2 (which is based on the DRMAA2 C API).
 
 ![uc image](https://raw.githubusercontent.com/dgruber/ubercluster/master/img/uc.png)
 
@@ -16,17 +18,11 @@ Hence during compile/runtime the tool needs access to drmaa2.h (which comes with
 
 Update: Removed DRMAA2 C dependencies from **uc** tool. Hence those requirements are only needed for the DRMAA2 proxy (**d2proxy**) tool.
 
-Note: The dependencies from other Go packages can be restored by:
-
-    godep restore 
-
-in the *cmd* subdirectories.
-
 Go to ```cmd/d2proxy```
  
     $ source path/to/your/GE/installation
+    $ godep restore
     $ ./build
-
 
 Go to ```cmd/uc```
 
@@ -91,6 +87,26 @@ The *config.json* file in **uc** directory needs to point to your cluster proxie
 #### ...and now in the "cluster1" cluster, adding a job name and selecting a queue (default is "all.q"):
 
     $ uc --cluster=cluster1 run --queue=all.q --name=MyName --arg=123 /bin/sleep
+    
+### ...more submission command parameters
+
+Since submission commands are never enough, always needs to be extended, ..., and are different between versions of cluster schedulers let's keep it simple. **uc** supports DRMAA2 job categories, which are names referencing a particular set of submission parameters. **Univa Grid Engine >= 8.2** encodes job categories as job classes. In **uc** you can request such job categories / classes with the **--category** parameter.
+
+```
+$ uc run --help
+usage: uc [<flags>] run [<flags>] <command>
+
+Submits an application to a cluster.
+
+Flags:
+  --arg=ARG            Argument of the command.
+  --name=NAME          Reference name of the command.
+  --queue=QUEUE        Queue name for the job.
+  --category=CATEGORY  Job category / job class of the job.
+
+Args:
+  <command>  Command to submit.
+```
 
 #### List all hosts of default cluster:
 
@@ -104,7 +120,7 @@ The *config.json* file in **uc** directory needs to point to your cluster proxie
 
     $ uc --help
 
-```sh
+```
 usage: uc [<flags>] <command> [<flags>] [<args> ...]
 
 A tool which can interact with multiple compute clusters.
@@ -129,6 +145,15 @@ Commands:
 
   run [<flags>] <command>
     Submits an application to a cluster.
+
+  terminate job [<jobid>]
+    Terminates (ends) a job in a cluster.
+
+  suspend job [<jobid>]
+    Suspends (pauses) a job in a cluster.
+
+  resume job [<jobid>]
+    Resumes a suspended job in a cluster.
 
   config list
     Lists all configured cluster proxies.
