@@ -3,13 +3,83 @@
 	"GoVersion": "go1.3.3",
 	"Deps": [
 		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.1.0-9-g3883ac1",
+			"Rev": "3883ac1ce943878302255f538fce319d23226223"
+		},
+		{
 			"ImportPath": "github.com/alecthomas/units",
 			"Rev": "eaf541876f0d9e17c669524a99f6f585ba362fbd"
+		},
+		{
+			"ImportPath": "github.com/armon/consul-api",
+			"Rev": "74cc5bab614dfecd6fe4ee5975b6ac97d2abc672"
+		},
+		{
+			"ImportPath": "github.com/coreos/go-etcd/etcd",
+			"Comment": "v0.2.0-rc1-127-g6fe04d5",
+			"Rev": "6fe04d580dfb71c9e34cbce2f4df9eefd1e1241e"
+		},
+		{
+			"ImportPath": "github.com/kr/pretty",
+			"Comment": "go.weekly.2011-12-22-24-gf31442d",
+			"Rev": "f31442d60e51465c69811e2107ae978868dbea5c"
+		},
+		{
+			"ImportPath": "github.com/kr/text",
+			"Rev": "6807e777504f54ad073ecef66747de158294b639"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "740c764bc6149d3f1806231418adb9f52c11bcbf"
+		},
+		{
+			"ImportPath": "github.com/spf13/cast",
+			"Rev": "c0388c79a01c8c97f1914580913631e422689df2"
+		},
+		{
+			"ImportPath": "github.com/spf13/jwalterweatherman",
+			"Rev": "3d60171a64319ef63c78bd45bd60e6eab1e75f8b"
+		},
+		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Rev": "463bdc838f2b35e9307e91d480878bda5fff7232"
+		},
+		{
+			"ImportPath": "github.com/spf13/viper",
+			"Rev": "d8f2aa78d42b618f51e668d0b7e05fe203f889de"
+		},
+		{
+			"ImportPath": "github.com/xordataexchange/crypt/backend",
+			"Comment": "v0.0.2-9-g9095a96",
+			"Rev": "9095a9689663a556aa58506f0254738e172a4361"
+		},
+		{
+			"ImportPath": "github.com/xordataexchange/crypt/config",
+			"Comment": "v0.0.2-9-g9095a96",
+			"Rev": "9095a9689663a556aa58506f0254738e172a4361"
+		},
+		{
+			"ImportPath": "github.com/xordataexchange/crypt/encoding/secconf",
+			"Comment": "v0.0.2-9-g9095a96",
+			"Rev": "9095a9689663a556aa58506f0254738e172a4361"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/cast5",
+			"Rev": "c89e5683853da5ed97731b507dcd8cda2b11afaf"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp",
+			"Rev": "c89e5683853da5ed97731b507dcd8cda2b11afaf"
 		},
 		{
 			"ImportPath": "gopkg.in/alecthomas/kingpin.v1",
 			"Comment": "v1.3.2",
 			"Rev": "261e7fbc88a2987695fb2240a6d8ec3ee15739c8"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v1",
+			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
 		}
 	]
 }

@@ -19,7 +19,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/spf13/viper"
 	"os"
 )
 
@@ -69,13 +69,15 @@ func saveDummyConfig() {
 }
 
 func readConfig() {
-	if file, err := os.Open("config.json"); err != nil {
-		fmt.Println("Can't read configuration (config.json) file.")
+	viper.SetConfigName("config")
+	viper.AddConfigPath("./")
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("Error reading in config file. ", err)
 		os.Exit(1)
-	} else {
-		decoder := json.NewDecoder(file)
-		decoder.Decode(&config)
-		log.Println(config)
+	}
+	if err := viper.Marshal(&config); err != nil {
+		fmt.Println("Error when decoding config file. ", err)
+		os.Exit(1)
 	}
 }
 
