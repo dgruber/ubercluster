@@ -33,15 +33,17 @@ var (
 	verbose = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
 	cluster = app.Flag("cluster", "Cluster name to interact with.").Default("default").String()
 
-	show            = app.Command("show", "Displays information about connected clusters.")
-	showJob         = show.Command("job", "Information about a particular job.")
-	showJobStateId  = showJob.Flag("state", "Show only jobs in that state (r/q/h/s/R/Rh/d/f/u/all).").Default("all").String()
-	showJobId       = showJob.Arg("id", "Id of job").Default("").String()
-	showJobUser     = showJob.Flag("user", "Shows only jobs of a particular user.").Default("").String()
-	showMachine     = show.Command("machine", "Information about compute hosts.")
-	showMachineName = showMachine.Arg("name", "Name of machine (or \"all\" for all.").Default("all").String()
-	showQueue       = show.Command("queue", "Information about queues.")
-	showQueueName   = showQueue.Arg("name", "Name of queue to show.").Default("all").String()
+	show               = app.Command("show", "Displays information about connected clusters.")
+	showJob            = show.Command("job", "Information about a particular job.")
+	showJobStateId     = showJob.Flag("state", "Show only jobs in that state (r/q/h/s/R/Rh/d/f/u/all).").Default("all").String()
+	showJobId          = showJob.Arg("id", "Id of job").Default("").String()
+	showJobUser        = showJob.Flag("user", "Shows only jobs of a particular user.").Default("").String()
+	showMachine        = show.Command("machine", "Information about compute hosts.")
+	showMachineName    = showMachine.Arg("name", "Name of machine (or \"all\" for all.").Default("all").String()
+	showQueue          = show.Command("queue", "Information about queues.")
+	showQueueName      = showQueue.Arg("name", "Name of queue to show.").Default("all").String()
+	showCategories     = show.Command("categories", "Information about job categories")
+	showCategoriesName = showCategories.Arg("name", "Name of job category to show.").Default("all").String()
 
 	run         = app.Command("run", "Submits an application to a cluster.")
 	runCommand  = run.Arg("command", "Command to submit.").Required().String()
@@ -96,6 +98,8 @@ func main() {
 		showMachines(clusteraddress, *showMachineName)
 	case showQueue.FullCommand():
 		showQueues(clusteraddress, *showQueueName)
+	case showCategories.FullCommand():
+		showJobCategories(clusteraddress, "ubercluster", *showCategoriesName)
 	case run.FullCommand():
 		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory)
 	case terminateJob.FullCommand():

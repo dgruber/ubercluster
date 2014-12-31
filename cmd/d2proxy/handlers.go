@@ -156,6 +156,31 @@ func msessionQueueHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jsessionCategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	// at the moment all job sessions have the same categories
+	if categories, err := js.GetJobCategories(); err == nil {
+		json.NewEncoder(w).Encode(categories)
+	} else {
+		log.Println("Error in GetAllQueues: ", err)
+	}
+}
+
+func jsessionCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	// at the moment all job sessions have the same categories
+	vars := mux.Vars(r)
+	name := vars["category"]
+	if categories, err := js.GetJobCategories(); err == nil {
+		for _, c := range categories {
+			if c == name {
+				json.NewEncoder(w).Encode(c)
+				return
+			}
+		}
+	} else {
+		log.Println("Error in GetAllQueues: ", err)
+	}
+}
+
 func msessionDRMSNameHandler(w http.ResponseWriter, r *http.Request) {
 	var sm drmaa2.SessionManager
 	if name, err := sm.GetDrmsName(); err == nil {

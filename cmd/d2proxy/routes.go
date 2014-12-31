@@ -29,6 +29,12 @@ var routes = Routes{
 		"JobManipulation", "POST", "/v1/jsession/{jsname}/{operation}/{jobid}", jobManipulationHandler,
 	},
 	Route{
+		"JobCategories", "GET", "/v1/jsession/{jsname}/jobcategories", jsessionCategoriesHandler,
+	},
+	Route{
+		"JobCategory", "GET", "/v1/jsession/{jsname}/jobcategory/{category}", jsessionCategoryHandler,
+	},
+	Route{
 		"msessionJobInfos", "GET", "/v1/msession/jobinfos", msessionJobInfosHandler,
 	},
 	Route{

@@ -174,3 +174,30 @@ func performOperation(clusteraddress, jsession, operation, jobId string) {
 		fmt.Println(string(body))
 	}
 }
+
+func showJobCategories(clusteraddress, jsession, category string) {
+	var url string
+	if category == "all" {
+		url = fmt.Sprintf("%s/jsession/%s/jobcategories", clusteraddress, jsession)
+	} else {
+		url = fmt.Sprintf("%s/jsession/%s/jobcategory/%s", clusteraddress, jsession, category)
+	}
+	log.Println("Requesting:" + url)
+	if resp, err := http.Get(url); err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	} else {
+		defer resp.Body.Close()
+		if category == "all" {
+			var catList []string
+			json.NewDecoder(resp.Body).Decode(&catList)
+			for _, cat := range catList {
+				fmt.Println(cat)
+			}
+		} else {
+			var cat string
+			json.NewDecoder(resp.Body).Decode(&cat)
+			fmt.Println(cat)
+		}
+	}
+}
