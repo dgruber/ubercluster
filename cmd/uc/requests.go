@@ -115,9 +115,8 @@ func showMachines(clustername, machine string) {
 	showMachinesQueues(clustername, "machines", machine)
 }
 
-func showMachinesQueues(clusteraddress, req, filter string) {
+func createRequestMachinesQueues(clusteraddress, req, filter string) string {
 	var request string
-
 	if filter == "all" {
 		request = fmt.Sprintf("%s/msession/%s", clusteraddress, req)
 	} else {
@@ -129,7 +128,11 @@ func showMachinesQueues(clusteraddress, req, filter string) {
 		}
 	}
 	log.Println("Requesting:" + request)
-	resp, err := http.Get(request)
+	return request
+}
+
+func showMachinesQueues(clusteraddress, req, filter string) {
+	resp, err := http.Get(createRequestMachinesQueues(clusteraddress, req, filter))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

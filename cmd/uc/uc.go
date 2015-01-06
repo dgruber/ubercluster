@@ -68,6 +68,10 @@ var (
 	// configuration
 	cfg     = app.Command("config", "Configuration of cluster proxies.")
 	cfgList = cfg.Command("list", "Lists all configured cluster proxies.")
+
+	// uc as proxy itself
+	incpt     = app.Command("inception", "Run uc as compatible proxy itself. Allows to create trees of clusters.")
+	incptPort = incpt.Arg("port", "Address to bind uc http server to.").Default(":8989").String()
 )
 
 func main() {
@@ -108,5 +112,7 @@ func main() {
 		performOperation(clusteraddress, "ubercluster", "suspend", *suspendJobId)
 	case resumeJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "resume", *resumeJobId)
+	case incpt.FullCommand():
+		inceptionMode(*incptPort)
 	}
 }

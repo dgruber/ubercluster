@@ -23,7 +23,7 @@ import (
 	"os"
 )
 
-// A ProxyImplementerer implements functions required to interface
+// A ProxyImplementer implements functions required to interface
 // a ubercluster proxy. Those functions are called in the standard
 // http request handlers.
 type ProxyImplementer interface {
