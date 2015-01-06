@@ -19,24 +19,21 @@ package main
 import (
 	"fmt"
 	"github.com/dgruber/drmaa2"
+	"github.com/dgruber/ubercluster"
 	"log"
 )
 
-// DRMAA2 Sessions required for accessing the cluster
-var ms *drmaa2.MonitoringSession
-var js *drmaa2.JobSession
-
-func initializeDRMAA2(jsName string) error {
+func (d2p *drmaa2proxy) initializeDRMAA2(jsName string) error {
 	var sm drmaa2.SessionManager
 	var err error
 
-	if ms, err = sm.OpenMonitoringSession(""); err != nil {
+	if d2p.ms, err = sm.OpenMonitoringSession(""); err != nil {
 		log.Fatal("Couldn't open DRMAA2 MonitoringSession")
 	}
 
-	if js, err = sm.CreateJobSession(jsName, ""); err != nil {
+	if d2p.js, err = sm.CreateJobSession(jsName, ""); err != nil {
 		log.Println("(proxy): Job session ", jsName, " exists already. Reopen it.")
-		if js, err = sm.OpenJobSession(jsName); err != nil {
+		if d2p.js, err = sm.OpenJobSession(jsName); err != nil {
 			log.Fatal("(proxy): Couldn't open job session: ", err)
 		}
 	}
@@ -134,4 +131,120 @@ func getJobInfoByState(ms *drmaa2.MonitoringSession, state string) []drmaa2.JobI
 		}
 	}
 	return nil
+}
+
+// Unfortunatley we need to convert here. This is going
+// to be removed as soon as there is a pure Go DRMAA2
+// interface to work with.
+
+func ConvertD2JobInfo(ji drmaa2.JobInfo) (uc ubercluster.JobInfo) {
+	uc.Id = ji.Id
+	uc.ExitStatus = ji.ExitStatus
+	uc.TerminatingSignal = ji.TerminatingSignal
+	uc.Annotation = ji.Annotation
+	uc.State = (ubercluster.JobState)(ji.State)
+	uc.SubState = ji.SubState
+	copy(uc.AllocatedMachines, ji.AllocatedMachines)
+	uc.SubmissionMachine = ji.SubmissionMachine
+	uc.JobOwner = ji.JobOwner
+	uc.Slots = ji.Slots
+	uc.QueueName = ji.QueueName
+	uc.WallclockTime = ji.WallclockTime
+	uc.CPUTime = ji.CPUTime
+	uc.SubmissionTime = ji.SubmissionTime
+	uc.DispatchTime = ji.DispatchTime
+	uc.FinishTime = ji.FinishTime
+	return uc
+}
+
+func ConvertUCJobInfo(ji ubercluster.JobInfo) (uc drmaa2.JobInfo) {
+	uc.Id = ji.Id
+	uc.ExitStatus = ji.ExitStatus
+	uc.TerminatingSignal = ji.TerminatingSignal
+	uc.Annotation = ji.Annotation
+	uc.State = (drmaa2.JobState)(ji.State)
+	uc.SubState = ji.SubState
+	copy(uc.AllocatedMachines, ji.AllocatedMachines)
+	uc.SubmissionMachine = ji.SubmissionMachine
+	uc.JobOwner = ji.JobOwner
+	uc.Slots = ji.Slots
+	uc.QueueName = ji.QueueName
+	uc.WallclockTime = ji.WallclockTime
+	uc.CPUTime = ji.CPUTime
+	uc.SubmissionTime = ji.SubmissionTime
+	uc.DispatchTime = ji.DispatchTime
+	uc.FinishTime = ji.FinishTime
+	return uc
+}
+
+func ConvertD2Machine(il []drmaa2.Machine) (ol []ubercluster.Machine) {
+	ol = make([]ubercluster.Machine, 0, 0)
+	for _, i := range il {
+		var o ubercluster.Machine
+		o.Name = i.Name
+		o.Available = i.Available
+		o.Sockets = i.Sockets
+		o.CoresPerSocket = i.CoresPerSocket
+		o.ThreadsPerCore = i.ThreadsPerCore
+		o.Load = i.Load
+		o.PhysicalMemory = i.PhysicalMemory
+		o.VirtualMemory = i.VirtualMemory
+		o.Architecture = (ubercluster.CPU)(i.Architecture)
+		o.OSVersion = (ubercluster.Version)(i.OSVersion)
+		o.OS = (ubercluster.OS)(i.OS)
+		ol = append(ol, o)
+	}
+	return ol
+}
+
+func ConvertD2Queue(il []drmaa2.Queue) (ol []ubercluster.Queue) {
+	ol = make([]ubercluster.Queue, 0, 0)
+	for _, i := range il {
+		var o ubercluster.Queue
+		o.Name = i.Name
+		ol = append(ol, o)
+	}
+	return ol
+}
+
+func ConvertUCJobTemplate(u ubercluster.JobTemplate) (jt drmaa2.JobTemplate) {
+	jt.RemoteCommand = u.RemoteCommand
+	copy(jt.Args, u.Args)
+	jt.SubmitAsHold = u.SubmitAsHold
+	jt.ReRunnable = u.ReRunnable
+	jt.JobEnvironment = copyMap(u.JobEnvironment)
+	jt.WorkingDirectory = u.WorkingDirectory
+	jt.JobCategory = u.JobCategory
+	copy(jt.Email, u.Email)
+	jt.EmailOnStarted = u.EmailOnStarted
+	jt.EmailOnTerminated = u.EmailOnTerminated
+	jt.JobName = u.JobName
+	jt.InputPath = u.InputPath
+	jt.OutputPath = u.OutputPath
+	jt.ErrorPath = u.ErrorPath
+	jt.JoinFiles = u.JoinFiles
+	jt.ReservationId = u.ReservationId
+	jt.QueueName = u.QueueName
+	jt.MaxSlots = u.MaxSlots
+	jt.MinSlots = u.MinSlots
+	jt.Priority = u.Priority
+	copy(jt.CandidateMachines, u.CandidateMachines)
+	jt.MinPhysMemory = u.MinPhysMemory
+	jt.MachineOs = u.MachineOs
+	jt.MachineArch = u.MachineArch
+	jt.StartTime = u.StartTime
+	jt.DeadlineTime = u.DeadlineTime
+	jt.StageInFiles = copyMap(u.StageInFiles)
+	jt.StageOutFiles = copyMap(u.StageOutFiles)
+	jt.ResourceLimits = copyMap(u.ResourceLimits)
+	jt.AccountingId = u.AccountingId
+	return jt
+}
+
+func copyMap(in map[string]string) map[string]string {
+	out := make(map[string]string, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
 }

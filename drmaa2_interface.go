@@ -8,6 +8,7 @@ package ubercluster
 import (
 	"fmt"
 	"time"
+	"unsafe"
 )
 
 // Job States
@@ -51,8 +52,28 @@ func (js JobState) String() string {
 	return "Unset"
 }
 
+type StructType int
+
+const (
+	JobTemplateType = iota
+	JobInfoType
+	ReservationTemplateType
+	ReservationInfoType
+	QueueInfoType
+	MachineInfoType
+	NotificationType
+)
+
+// Extension struct which is embedded in DRMAA2 objects
+// which are extensible.
+type Extension struct {
+	SType         StructType        // Stores the type of the struct
+	Internal      unsafe.Pointer    // Enhancmement of C struct
+	ExtensionList map[string]string // stores the extension requests as string
+}
+
 type JobInfo struct {
-	//Extension         `xml:"-" json:"-"`
+	Extension         `xml:"-" json:"-"`
 	Id                string        `json:"id"`
 	ExitStatus        int           `json:"exitStatus"`
 	TerminatingSignal string        `json:"terminationSignal"`
@@ -72,7 +93,7 @@ type JobInfo struct {
 }
 
 type JobTemplate struct {
-	//Extension         `xml:"-" json:"-"`
+	Extension         `xml:"-" json:"-"`
 	RemoteCommand     string            `json:"remoteCommand"`
 	Args              []string          `json:"args"`
 	SubmitAsHold      bool              `json:"submitAsHold"`
@@ -222,7 +243,7 @@ func (v *Version) String() string {
 }
 
 type Machine struct {
-	//Extension      `xml:"-" json:"-"`
+	Extension      `xml:"-" json:"-"`
 	Name           string  `json:"name"`
 	Available      bool    `json:"available"`
 	Sockets        int64   `json:"sockets"`
@@ -237,8 +258,8 @@ type Machine struct {
 }
 
 type Queue struct {
-	//Extension `xml:"-" json:"-"`
-	Name string `xml:"name"`
+	Extension `xml:"-" json:"-"`
+	Name      string `xml:"name"`
 }
 
 // Special timeout value: Don't wait

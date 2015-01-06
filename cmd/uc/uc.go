@@ -42,7 +42,7 @@ var (
 	showMachineName    = showMachine.Arg("name", "Name of machine (or \"all\" for all.").Default("all").String()
 	showQueue          = show.Command("queue", "Information about queues.")
 	showQueueName      = showQueue.Arg("name", "Name of queue to show.").Default("all").String()
-	showCategories     = show.Command("categories", "Information about job categories")
+	showCategories     = show.Command("category", "Information about job categories.")
 	showCategoriesName = showCategories.Arg("name", "Name of job category to show.").Default("all").String()
 
 	run         = app.Command("run", "Submits an application to a cluster.")

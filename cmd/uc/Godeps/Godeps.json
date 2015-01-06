@@ -21,6 +21,14 @@
 			"Rev": "6fe04d580dfb71c9e34cbce2f4df9eefd1e1241e"
 		},
 		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "14f550f51af52180c2eefed15e5fd18d63c0a64a"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "e444e69cbd2e2e3e0749a2f3c717cec491552bbf"
+		},
+		{
 			"ImportPath": "github.com/kr/pretty",
 			"Comment": "go.weekly.2011-12-22-24-gf31442d",
 			"Rev": "f31442d60e51465c69811e2107ae978868dbea5c"
