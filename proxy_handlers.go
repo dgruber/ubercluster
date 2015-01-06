@@ -183,7 +183,7 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 				log.Println("(proxy) Submit now job")
 				// Submit job in compute cluster
 				if jobid, joberr := impl.RunJob(jt); joberr != nil {
-					log.Println("(proxy) Error duing job submission: ", joberr)
+					log.Println("(proxy) Error during job submission: ", joberr)
 					http.Error(w, uerr.Error(), http.StatusInternalServerError)
 
 				} else {

@@ -144,6 +144,7 @@ func ConvertD2JobInfo(ji drmaa2.JobInfo) (uc ubercluster.JobInfo) {
 	uc.Annotation = ji.Annotation
 	uc.State = (ubercluster.JobState)(ji.State)
 	uc.SubState = ji.SubState
+	uc.AllocatedMachines = make([]string, len(ji.AllocatedMachines), len(ji.AllocatedMachines))
 	copy(uc.AllocatedMachines, ji.AllocatedMachines)
 	uc.SubmissionMachine = ji.SubmissionMachine
 	uc.JobOwner = ji.JobOwner
@@ -164,6 +165,7 @@ func ConvertUCJobInfo(ji ubercluster.JobInfo) (uc drmaa2.JobInfo) {
 	uc.Annotation = ji.Annotation
 	uc.State = (drmaa2.JobState)(ji.State)
 	uc.SubState = ji.SubState
+	uc.AllocatedMachines = make([]string, len(ji.AllocatedMachines), len(ji.AllocatedMachines))
 	copy(uc.AllocatedMachines, ji.AllocatedMachines)
 	uc.SubmissionMachine = ji.SubmissionMachine
 	uc.JobOwner = ji.JobOwner
@@ -209,12 +211,14 @@ func ConvertD2Queue(il []drmaa2.Queue) (ol []ubercluster.Queue) {
 
 func ConvertUCJobTemplate(u ubercluster.JobTemplate) (jt drmaa2.JobTemplate) {
 	jt.RemoteCommand = u.RemoteCommand
+	jt.Args = make([]string, len(u.Args), len(u.Args))
 	copy(jt.Args, u.Args)
 	jt.SubmitAsHold = u.SubmitAsHold
 	jt.ReRunnable = u.ReRunnable
 	jt.JobEnvironment = copyMap(u.JobEnvironment)
 	jt.WorkingDirectory = u.WorkingDirectory
 	jt.JobCategory = u.JobCategory
+	jt.Email = make([]string, len(u.Email), len(u.Email))
 	copy(jt.Email, u.Email)
 	jt.EmailOnStarted = u.EmailOnStarted
 	jt.EmailOnTerminated = u.EmailOnTerminated
@@ -228,6 +232,7 @@ func ConvertUCJobTemplate(u ubercluster.JobTemplate) (jt drmaa2.JobTemplate) {
 	jt.MaxSlots = u.MaxSlots
 	jt.MinSlots = u.MinSlots
 	jt.Priority = u.Priority
+	jt.CandidateMachines = make([]string, len(u.CandidateMachines), len(u.CandidateMachines))
 	copy(jt.CandidateMachines, u.CandidateMachines)
 	jt.MinPhysMemory = u.MinPhysMemory
 	jt.MachineOs = u.MachineOs
