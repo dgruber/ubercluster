@@ -143,6 +143,9 @@ Commands:
   show queue [<name>]
     Information about queues.
 
+  show categories [<name>]
+    Information about job categories
+
   run [<flags>] <command>
     Submits an application to a cluster.
 
