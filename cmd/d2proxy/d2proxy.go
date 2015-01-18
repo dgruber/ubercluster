@@ -41,7 +41,7 @@ var (
 	cliPort    = app.Flag("port", "Sets address and port on which proxy is listening.").Default(":8888").String()
 	certFile   = app.Flag("certFile", "Path to certification file for secure connections (TLS).").Default("").String()
 	keyFile    = app.Flag("keyFile", "Path to key file for secure connections (TLS).").Default("").String()
-	otp        = app.Flag("otp", "One time password settings (currently \"yubikey\" or otherwise a fixed secret)").Default("").String()
+	otp        = app.Flag("otp", "One time password settings (\"yubikey\") or a fixed shared secret.").Default("").String()
 )
 
 type drmaa2proxy struct {
