@@ -129,7 +129,8 @@ Flags:
   --help               Show help.
   --verbose            Enables enhanced logging for debugging.
   --cluster="default"  Cluster name to interact with.
-
+  --otp=OTP            One time password ("yubikey") or shared secret.
+  
 Commands:
   help [<command>]
     Show help for a command.
@@ -160,6 +161,10 @@ Commands:
 
   config list
     Lists all configured cluster proxies.
+
+  inception [<port>]
+    Run uc as compatible proxy itself. Allows to create trees of clusters.
+
 ```
 
 For detailed help on sub-commands:
