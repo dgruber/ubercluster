@@ -17,20 +17,56 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/dgruber/ubercluster"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
+
+// uberGet makes an http GET request. Depending on the uc
+// configuration (currently cli param) it adds a one time
+// password.
+func uberGet(request string) (resp *http.Response, err error) {
+	newRequest := request
+	if *otp != "" {
+		// adding http secret key (OTP)
+		if strings.Contains(request, "?") {
+			newRequest = fmt.Sprintf("%s&otp=%s", request, *otp)
+		} else {
+			newRequest = fmt.Sprintf("%s?otp=%s", request, *otp)
+		}
+	}
+	log.Println("New request: ", newRequest)
+	return http.Get(newRequest)
+}
+
+// uberPost is a http.Post replacement which adds otp requests
+// and possibly others depending on the configuration.
+func uberPost(url string, bodyType string, body io.Reader) (resp *http.Response, err error) {
+	newUrl := url
+	if *otp != "" {
+		// adding http secret key (OTP)
+		if strings.Contains(url, "?") {
+			newUrl = fmt.Sprintf("%s&otp=%s", url, *otp)
+		} else {
+			newUrl = fmt.Sprintf("%s?otp=%s", url, *otp)
+		}
+	}
+	log.Println("New POST: ", newUrl)
+	return http.Post(newUrl, bodyType, body)
+}
 
 func showJobDetails(clustername, jobid string) {
 	request := fmt.Sprintf("%s%s%s", clustername, "/msession/jobinfo/", jobid)
 	log.Println("Requesting:" + request)
-	resp, err := http.Get(request)
+	resp, err := uberGet(request)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -61,7 +97,7 @@ func showJobs(clusteraddress, state, user string) {
 		request = fmt.Sprintf("%s%s%s", request, "user=", user)
 	}
 	log.Println("Requesting:" + request)
-	resp, err := http.Get(request)
+	resp, err := uberGet(request)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -81,8 +117,15 @@ func showJobs(clusteraddress, state, user string) {
 	}
 }
 
+func getYubiKey() string {
+	fmt.Printf("Press yubikey button: ")
+	bio := bufio.NewReader(os.Stdin)
+	line, _, _ := bio.ReadLine()
+	return string(line)
+}
+
 // submitJob creates a new job in the given cluster
-func submitJob(clusteraddress, jobname, cmd, arg, queue, category string) {
+func submitJob(clusteraddress, jobname, cmd, arg, queue, category, otp string) {
 	var jt ubercluster.JobTemplate
 	// fill a DRMAA2 job template and send it over to the proxy
 	jt.RemoteCommand = cmd
@@ -98,9 +141,14 @@ func submitJob(clusteraddress, jobname, cmd, arg, queue, category string) {
 
 	// create URL of cluster to send the job to
 	url := fmt.Sprintf("%s%s", clusteraddress, "/jsession/default/run")
+	if otp != "" {
+		// it is yubi
+		key := getYubiKey()
+		url = fmt.Sprintf("%s?otp=", key)
+	}
 	log.Println("POST to URL:", url)
 	log.Println("Submit template: ", string(jtb))
-	if resp, err := http.Post(url, "application/json", bytes.NewBuffer(jtb)); err != nil {
+	if resp, err := uberPost(url, "application/json", bytes.NewBuffer(jtb)); err != nil {
 		fmt.Println("Error during post: ", err)
 	} else {
 		log.Println("Status of request:", resp.Status)
@@ -132,7 +180,7 @@ func createRequestMachinesQueues(clusteraddress, req, filter string) string {
 }
 
 func showMachinesQueues(clusteraddress, req, filter string) {
-	resp, err := http.Get(createRequestMachinesQueues(clusteraddress, req, filter))
+	resp, err := uberGet(createRequestMachinesQueues(clusteraddress, req, filter))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -168,7 +216,7 @@ func performOperation(clusteraddress, jsession, operation, jobId string) {
 	url := fmt.Sprintf("%s/jsession/%s/%s/%s", clusteraddress, jsession, operation, jobId)
 	log.Println("Requesting:" + url)
 	buffer := bytes.NewBuffer([]byte(""))
-	if resp, err := http.Post(url, "application/json", buffer); err != nil {
+	if resp, err := uberPost(url, "application/json", buffer); err != nil {
 		fmt.Println("Error during post: ", err)
 	} else {
 		log.Println("Status of request:", resp.Status)
@@ -178,7 +226,7 @@ func performOperation(clusteraddress, jsession, operation, jobId string) {
 	}
 }
 
-func showJobCategories(clusteraddress, jsession, category string) {
+func getJobCategories(clusteraddress, jsession, category string) []string {
 	var url string
 	if category == "all" {
 		url = fmt.Sprintf("%s/jsession/%s/jobcategories", clusteraddress, jsession)
@@ -186,7 +234,7 @@ func showJobCategories(clusteraddress, jsession, category string) {
 		url = fmt.Sprintf("%s/jsession/%s/jobcategory/%s", clusteraddress, jsession, category)
 	}
 	log.Println("Requesting:" + url)
-	if resp, err := http.Get(url); err != nil {
+	if resp, err := uberGet(url); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	} else {
@@ -194,13 +242,18 @@ func showJobCategories(clusteraddress, jsession, category string) {
 		if category == "all" {
 			var catList []string
 			json.NewDecoder(resp.Body).Decode(&catList)
-			for _, cat := range catList {
-				fmt.Println(cat)
-			}
+			return catList
 		} else {
 			var cat string
 			json.NewDecoder(resp.Body).Decode(&cat)
-			fmt.Println(cat)
+			return []string{cat}
 		}
+	}
+	return nil
+}
+
+func showJobCategories(clusteraddress, jsession, category string) {
+	for _, cat := range getJobCategories(clusteraddress, jsession, category) {
+		fmt.Println(cat)
 	}
 }

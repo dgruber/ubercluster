@@ -214,3 +214,8 @@ func MakeJSessionJobManipulationHandler(impl ProxyImplementer) http.HandlerFunc 
 		}
 	}
 }
+
+func AutenticationErrorHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Authentication error")
+	http.NotFound(w, r)
+}

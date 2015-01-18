@@ -26,6 +26,9 @@ import (
 // configuration for proxies of compute clusters which can be queried
 var config Config
 
+// global configuration parameters
+var globalConfig GlobalConfig
+
 type ClusterConfig struct {
 	// name to reference the cluster in this tool ("default" is
 	// the address used when no cluster is explicitly referenced
@@ -42,6 +45,10 @@ func (c ClusterConfig) String() string {
 type Config struct {
 	// Multiple endpoints of proxies can be defined
 	Cluster []ClusterConfig
+}
+
+type GlobalConfig struct {
+	OTP string
 }
 
 // saveDummyConfig creates a file dummyconfig.json in order

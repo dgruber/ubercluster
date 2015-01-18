@@ -19,6 +19,7 @@ package ubercluster
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"os"
 )
@@ -89,28 +90,67 @@ var routes = Routes{
 	},
 }
 
+// Simple security through a shared secret
+func MakeFixedSecretHandler(secret string, f http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if secret != "" {
+			otpFromClient := r.FormValue("otp")
+			if otpFromClient == "" {
+				otpFromClient = r.PostFormValue("otp")
+			}
+			log.Println("OTP --> ", otpFromClient)
+			log.Println(*r)
+			log.Printf("OTP is set to %s and request is %s\n", secret, otpFromClient)
+			// check otp
+			if otpFromClient == secret {
+				f(w, r)
+			} else {
+				log.Println("Unauthorized access by ", r.RemoteAddr)
+				http.Error(w, "authorization failed", http.StatusUnauthorized)
+				return
+			}
+		} else {
+			// don't check one time password
+			f(w, r)
+		}
+	}
+}
+
+// TODO Make Yubikey handler
+
 // NewProxyRouter creates a mux router for matching
 // http requests to handlers.
-func NewProxyRouter(impl ProxyImplementer) *mux.Router {
+func NewProxyRouter(impl ProxyImplementer, otp string) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
-	for _, route := range routes {
-		router.
-			Methods(route.Method).
-			Path(route.Pattern).
-			Name(route.Name).
-			Handler(route.MakeHandlerFunc(impl))
+	if otp == "" {
+		for _, route := range routes {
+			router.
+				Methods(route.Method).
+				Path(route.Pattern).
+				Name(route.Name).
+				Handler(route.MakeHandlerFunc(impl))
+		}
+	} else {
+		for _, route := range routes {
+			router.
+				Methods(route.Method).
+				Path(route.Pattern).
+				Name(route.Name).
+				Handler(MakeFixedSecretHandler(otp, route.MakeHandlerFunc(impl)))
+		}
 	}
+
 	return router
 }
 
-func ProxyListenAndServe(addr, certFile, keyFile string, impl ProxyImplementer) {
+func ProxyListenAndServe(addr, certFile, keyFile, otp string, impl ProxyImplementer) {
 	if certFile != "" && keyFile != "" {
-		if err := http.ListenAndServeTLS(addr, certFile, keyFile, NewProxyRouter(impl)); err != nil {
+		if err := http.ListenAndServeTLS(addr, certFile, keyFile, NewProxyRouter(impl, otp)); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 	} else {
-		if err := http.ListenAndServe(addr, NewProxyRouter(impl)); err != nil {
+		if err := http.ListenAndServe(addr, NewProxyRouter(impl, otp)); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

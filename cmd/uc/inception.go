@@ -21,10 +21,12 @@ package main
 import (
 	"fmt"
 	"github.com/dgruber/ubercluster"
+	"log"
 )
 
 type inception struct {
-	config Config // uc configuration object
+	inceptionAddress string // address of uc itself
+	config           Config // uc configuration object
 }
 
 // Implements the ProxyImplementer interface
@@ -46,7 +48,16 @@ func (i *inception) GetAllQueues(queues []string) ([]ubercluster.Queue, error) {
 }
 
 func (i *inception) GetAllCategories() ([]string, error) {
-	return nil, nil
+	cat := make([]string, 0, 0)
+	for _, c := range i.config.Cluster {
+		log.Println("Requesting job categories from: ", c.Address)
+		if addr := fmt.Sprintf("%s/", c.Address); addr == i.inceptionAddress {
+			log.Println("Skipping own address")
+			continue
+		}
+		cat = append(cat, getJobCategories(getClusterAddress(c.Name), "ubercluster", "all")...)
+	}
+	return cat, nil
 }
 
 func (i *inception) DRMSVersion() string {
@@ -70,5 +81,5 @@ func inceptionMode(address string) {
 	var incept inception
 	incept.config = config // configuration contains all connected clusters
 	fmt.Println("Starting uc in inception mode as proxy listing at address: ", address)
-	ubercluster.ProxyListenAndServe(address, "", "", &incept)
+	ubercluster.ProxyListenAndServe(address, "", "", "", &incept)
 }

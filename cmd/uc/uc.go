@@ -32,6 +32,7 @@ var (
 	app     = kingpin.New("uc", "A tool which can interact with multiple compute clusters.")
 	verbose = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
 	cluster = app.Flag("cluster", "Cluster name to interact with.").Default("default").String()
+	otp     = app.Flag("otp", "One time password (OTP / currently only \"yubikey\"").Default("").String()
 
 	show               = app.Command("show", "Displays information about connected clusters.")
 	showJob            = show.Command("job", "Information about a particular job.")
@@ -105,7 +106,7 @@ func main() {
 	case showCategories.FullCommand():
 		showJobCategories(clusteraddress, "ubercluster", *showCategoriesName)
 	case run.FullCommand():
-		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory)
+		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
 	case terminateJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "terminate", *terminateJobId)
 	case suspendJob.FullCommand():

@@ -41,6 +41,7 @@ var (
 	cliPort    = app.Flag("port", "Sets address and port on which proxy is listening.").Default(":8888").String()
 	certFile   = app.Flag("certFile", "Path to certification file for secure connections (TLS).").Default("").String()
 	keyFile    = app.Flag("keyFile", "Path to key file for secure connections (TLS).").Default("").String()
+	otp        = app.Flag("otp", "One time password settings (currently \"yubikey\" or otherwise a fixed secret)").Default("").String()
 )
 
 type drmaa2proxy struct {
@@ -132,10 +133,13 @@ func (d2p *drmaa2proxy) JobOperation(jobsessionname, operation, jobid string) (s
 	// fixed in Go DRMAA2 we use a non-scaling method and do
 	// filtering on our own.
 	if jobs, err := d2p.js.GetJobs(); err != nil {
+		log.Println("Error while DRMAA2 GetJobs()")
 		return "", err
 	} else {
+		log.Println("Got following jobs in job session: ", jobs)
 		for _, job := range jobs {
-			if job.GetId() == jobid {
+			log.Println("Job id: ", job.GetId())
+			if job.GetId() == jobid || job.GetId() == jobid+".1" {
 				switch operation {
 				case "suspend":
 					if err := job.Suspend(); err != nil {
@@ -181,5 +185,5 @@ func main() {
 	defer proxy.js.Close()
 	defer proxy.ms.CloseMonitoringSession()
 
-	ubercluster.ProxyListenAndServe(*cliPort, *certFile, *keyFile, &proxy)
+	ubercluster.ProxyListenAndServe(*cliPort, *certFile, *keyFile, *otp, &proxy)
 }
