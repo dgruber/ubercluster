@@ -19,9 +19,11 @@ package main
 // Run uc as proxy itself. Allows to stack clusters of cluster recursively.
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dgruber/ubercluster"
 	"log"
+	"strings"
 	"sync"
 )
 
@@ -72,11 +74,48 @@ func (i *inception) GetJobInfosByFilter(filtered bool, filter ubercluster.JobInf
 	return jip.jobinfos
 }
 
+func getJobFromCluster(i *inception, clustername string, jobid string) (*ubercluster.JobInfo, error) {
+	// check if cluster name is known
+	address := ""
+	version := "v1"
+	for _, c := range i.config.Cluster {
+		if c.Name == clustername {
+			address = c.Address
+			version = c.ProtocolVersion
+			break
+		}
+	}
+	if address != "" {
+		request := fmt.Sprintf("%s%s", address, version)
+		log.Println("GetJobFromCluster request", request)
+		if job, err := getJob(request, jobid); err == nil {
+			return &job, nil
+		} else {
+			log.Println("error during requesting job: ", err)
+			return nil, err
+		}
+	}
+	return nil, errors.New("Couldn't find clustername in config: " + clustername)
+}
+
 func (i *inception) GetJobInfo(jobid string) *ubercluster.JobInfo {
 	// search job id in all connected clusters
 	// if it has a postfix - only in that cluster
 	// 1301@mybiggridenginecluster search 1301 in the given cluster
-
+	if strings.Contains(jobid, "@") {
+		// get cluster name
+		jobAtCluster := strings.Split(jobid, "@")
+		if len(jobAtCluster) == 2 {
+			job, _ := getJobFromCluster(i, jobAtCluster[1], jobAtCluster[0])
+			return job
+		} else {
+			log.Println("Wrong job identifier (expected jobid@cluster or jobid) but is ", jobid)
+		}
+	} else {
+		// request default cluster for the given job identifier
+		job, _ := getJobFromCluster(i, "default", jobid)
+		return job
+	}
 	return nil
 }
 

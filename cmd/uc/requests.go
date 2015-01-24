@@ -63,8 +63,8 @@ func uberPost(url string, bodyType string, body io.Reader) (resp *http.Response,
 	return http.Post(newUrl, bodyType, body)
 }
 
-func showJobDetails(clustername, jobid string) {
-	request := fmt.Sprintf("%s%s%s", clustername, "/msession/jobinfo/", jobid)
+func getJob(clusteraddress, jobid string) (ubercluster.JobInfo, error) {
+	request := fmt.Sprintf("%s%s%s", clusteraddress, "/msession/jobinfo/", jobid)
 	log.Println("Requesting:" + request)
 	resp, err := uberGet(request)
 	if err != nil {
@@ -75,9 +75,18 @@ func showJobDetails(clustername, jobid string) {
 
 	decoder := json.NewDecoder(resp.Body)
 	var jobinfo ubercluster.JobInfo
-	if err := decoder.Decode(&jobinfo); err == nil {
-		// here formating rules
+	if err := decoder.Decode(&jobinfo); err != nil {
+		return jobinfo, err
+	}
+	return jobinfo, nil
+}
+
+func showJobDetails(clustername, jobid string) {
+	jobinfo, err := getJob(clustername, jobid)
+	if err == nil {
 		emulateQstat(jobinfo)
+	} else {
+		fmt.Println("Error: ", err)
 	}
 }
 

@@ -49,7 +49,7 @@ type drmaa2proxy struct {
 	js *drmaa2.JobSession
 }
 
-// implement neccessary methods to fulfill the ProxyImplemeter interface
+// implement neccessary methods to fulfill the ProxyImplementer interface
 
 func (d2p *drmaa2proxy) GetJobInfosByFilter(filtered bool, filter ubercluster.JobInfo) []ubercluster.JobInfo {
 	var f *drmaa2.JobInfo
