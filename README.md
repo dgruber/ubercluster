@@ -129,7 +129,8 @@ Flags:
   --help               Show help.
   --verbose            Enables enhanced logging for debugging.
   --cluster="default"  Cluster name to interact with.
-
+  --otp=OTP            One time password ("yubikey") or shared secret.
+  
 Commands:
   help [<command>]
     Show help for a command.
@@ -160,6 +161,10 @@ Commands:
 
   config list
     Lists all configured cluster proxies.
+
+  inception [<port>]
+    Run uc as compatible proxy itself. Allows to create trees of clusters.
+
 ```
 
 For detailed help on sub-commands:
@@ -178,3 +183,15 @@ Args:
   [<id>]  Id of job
 
 ```
+
+#### Security Considerations
+
+Please be aware that when exporting over http also others in the same network
+(or even publicly) can access the clusters. Job modifications are only allowed
+for jobs started in the same DRMAA2 job session (usually only those submitted
+by *uc*).
+
+Currently there is only a simple security mode build in. When starting the proxy
+with *--otp=MySuperSecretGeneratedString* then only *uc* requests also with using 
+*--otp=MySuperSecretGeneratedString* are allowed. Future improvements are planned,
+like TLS support (the proxy already supports it) and integrating yubikey OTPs.
