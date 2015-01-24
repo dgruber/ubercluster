@@ -196,5 +196,5 @@ func inceptionMode(address string) {
 	var incept inception
 	incept.config = config // configuration contains all connected clusters
 	fmt.Println("Starting uc in inception mode as proxy listing at address: ", address)
-	ubercluster.ProxyListenAndServe(address, "", "", "", &incept)
+	ubercluster.ProxyListenAndServe(address, "", "", *otp, &incept)
 }
