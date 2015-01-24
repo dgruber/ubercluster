@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/dgruber/ubercluster"
 	"log"
+	"sync"
 )
 
 type inception struct {
@@ -31,8 +32,44 @@ type inception struct {
 
 // Implements the ProxyImplementer interface
 
+// collects jobinfos from all clusters in parallel
+type jiProtected struct {
+	sync.Mutex
+	sync.WaitGroup
+	jobinfos []ubercluster.JobInfo
+}
+
+// requestJobInfos requests job infos of jobs in the
+// given state from a cluster given by the address
+func requestJobInfos(ji *jiProtected, state string, address string) {
+	log.Println("Requesting from: ", address)
+	jis := getJobs(address, state, "")
+	log.Println("Got following jobinfos: ", jis)
+	if jis != nil {
+		ji.Lock()
+		ji.jobinfos = append(ji.jobinfos, jis...)
+		ji.Unlock()
+	}
+	ji.Done()
+}
+
 func (i *inception) GetJobInfosByFilter(filtered bool, filter ubercluster.JobInfo) []ubercluster.JobInfo {
-	return nil
+	var jip jiProtected
+	jip.jobinfos = make([]ubercluster.JobInfo, 0, 0)
+	jip.Add(len(i.config.Cluster))
+	// request clusters in parallel and wait for all of them
+	for _, c := range i.config.Cluster {
+		if addr := fmt.Sprintf("%s/", c.Address); addr == i.inceptionAddress {
+			log.Println("Skipping own address ", c.Address)
+			jip.Done()
+			continue
+		}
+		go requestJobInfos(&jip, "all", fmt.Sprintf("%s/v1", c.Address))
+	}
+	// wait until we got all job infos from all cluster
+	jip.Wait()
+
+	return jip.jobinfos
 }
 
 func (i *inception) GetJobInfo(jobid string) *ubercluster.JobInfo {

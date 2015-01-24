@@ -81,7 +81,7 @@ func showJobDetails(clustername, jobid string) {
 	}
 }
 
-func showJobs(clusteraddress, state, user string) {
+func getJobs(clusteraddress, state, user string) []ubercluster.JobInfo {
 	firstSet := false
 	request := fmt.Sprintf("%s%s", clusteraddress, "/msession/jobinfos")
 	if state != "" && state != "all" {
@@ -107,13 +107,23 @@ func showJobs(clusteraddress, state, user string) {
 	decoder := json.NewDecoder(resp.Body)
 	var joblist []ubercluster.JobInfo
 	decoder.Decode(&joblist)
-	// here formating rules
+	log.Println(joblist)
+
+	return joblist
+}
+
+func showJobs(clusteraddress, state, user string) {
+	joblist := getJobs(clusteraddress, state, user)
 	for index, _ := range joblist {
 		emulateQstat(joblist[index])
 		fmt.Println()
 	}
 	if len(joblist) == 0 {
-		fmt.Printf("No job in state %s found.\n", state)
+		if state != "all" {
+			fmt.Printf("No job in state %s found.\n", state)
+		} else {
+			fmt.Printf("No job found.\n")
+		}
 	}
 }
 
