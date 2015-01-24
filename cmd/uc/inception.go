@@ -36,21 +36,60 @@ func (i *inception) GetJobInfosByFilter(filtered bool, filter ubercluster.JobInf
 }
 
 func (i *inception) GetJobInfo(jobid string) *ubercluster.JobInfo {
+	// search job id in all connected clusters
+	// if it has a postfix - only in that cluster
+	// 1301@mybiggridenginecluster search 1301 in the given cluster
+
 	return nil
 }
 
 func (i *inception) GetAllMachines(machines []string) ([]ubercluster.Machine, error) {
-	return nil, nil
+	allmachines := make([]ubercluster.Machine, 0, 0)
+	for _, c := range i.config.Cluster {
+		log.Println("Requesting from: ", c.Address)
+		// we don't request our own address...
+		if addr := fmt.Sprintf("%s/", c.Address); addr == i.inceptionAddress {
+			continue
+		}
+		if ms, err := getMachines(getClusterAddress(c.Name), "all"); err == nil {
+			allmachines = append(allmachines, ms...)
+			log.Println("Appending: ", allmachines)
+		} else {
+			log.Println("Error while requesting machines from ", c.Name, err)
+		}
+		// TODO filter according request
+		// TODO remove duplicates
+	}
+	return allmachines, nil
 }
 
+// GetAllQueues returns all queue names from all clusters which are
+// connected to the uc tool.
 func (i *inception) GetAllQueues(queues []string) ([]ubercluster.Queue, error) {
-	return nil, nil
+	allqueues := make([]ubercluster.Queue, 0, 0)
+	// TODO go functions of course
+	for _, c := range i.config.Cluster {
+		log.Println("Requesting from: ", c.Address)
+		// we don't request our own address...
+		if addr := fmt.Sprintf("%s/", c.Address); addr == i.inceptionAddress {
+			continue
+		}
+		if qs, err := getQueues(getClusterAddress(c.Name), "all"); err == nil {
+			allqueues = append(allqueues, qs...)
+			log.Println("Appending: ", allqueues)
+		} else {
+			log.Println("Error while requesting queues from ", c.Name, err)
+		}
+		// TODO filter according request
+		// TODO remove duplicates
+	}
+	return allqueues, nil
 }
 
 func (i *inception) GetAllCategories() ([]string, error) {
 	cat := make([]string, 0, 0)
 	for _, c := range i.config.Cluster {
-		log.Println("Requesting job categories from: ", c.Address)
+		log.Println("Requesting from: ", c.Address)
 		if addr := fmt.Sprintf("%s/", c.Address); addr == i.inceptionAddress {
 			log.Println("Skipping own address")
 			continue

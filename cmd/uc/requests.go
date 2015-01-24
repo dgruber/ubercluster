@@ -179,8 +179,8 @@ func createRequestMachinesQueues(clusteraddress, req, filter string) string {
 	return request
 }
 
-func showMachinesQueues(clusteraddress, req, filter string) {
-	resp, err := uberGet(createRequestMachinesQueues(clusteraddress, req, filter))
+func getQueues(clusteraddress, filter string) ([]ubercluster.Queue, error) {
+	resp, err := uberGet(createRequestMachinesQueues(clusteraddress, "queues", filter))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -188,23 +188,45 @@ func showMachinesQueues(clusteraddress, req, filter string) {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
+	var queuelist []ubercluster.Queue
+	if err := decoder.Decode(&queuelist); err != nil {
+		fmt.Println("Error during decoding: ", err)
+		return nil, err
+	}
+	return queuelist, nil
+}
+
+func getMachines(clusteraddress, filter string) ([]ubercluster.Machine, error) {
+	resp, err := uberGet(createRequestMachinesQueues(clusteraddress, "machines", filter))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+
+	decoder := json.NewDecoder(resp.Body)
+	var machinelist []ubercluster.Machine
+	if err := decoder.Decode(&machinelist); err != nil {
+		fmt.Println("Error during decoding: ", err)
+		return nil, err
+	}
+	return machinelist, nil
+}
+
+func showMachinesQueues(clusteraddress, req, filter string) {
+	log.Println("showMachineQueues: ", clusteraddress, req, filter)
 	if req == "machines" {
-		var machinelist []ubercluster.Machine
-		if err := decoder.Decode(&machinelist); err != nil {
-			fmt.Println("Error during decoding: ", err)
-			os.Exit(1)
-		}
-		for index, _ := range machinelist {
-			emulateQhost(machinelist[index])
+		if machinelist, err := getMachines(clusteraddress, filter); err == nil {
+			for index, _ := range machinelist {
+				emulateQhost(machinelist[index])
+			}
 		}
 	} else if req == "queues" {
-		var queuelist []ubercluster.Queue
-		if err := decoder.Decode(&queuelist); err != nil {
-			fmt.Println("Error during decoding: ", err)
-			os.Exit(1)
-		}
-		for index, _ := range queuelist {
-			fmt.Println(queuelist[index].Name)
+		if queuelist, err := getQueues(clusteraddress, filter); err == nil {
+			log.Println("Queuelist: ", queuelist)
+			for index, _ := range queuelist {
+				fmt.Println(queuelist[index].Name)
+			}
 		}
 	}
 }

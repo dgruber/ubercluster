@@ -121,8 +121,8 @@ func MakeQueueHandler(impl ProxyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		name := vars["name"]
-		if machines, err := impl.GetAllQueues([]string{name}); err == nil {
-			json.NewEncoder(w).Encode(machines)
+		if queues, err := impl.GetAllQueues([]string{name}); err == nil {
+			json.NewEncoder(w).Encode(queues)
 		} else {
 			log.Println("Error in GetAllQueues: ", err)
 		}
