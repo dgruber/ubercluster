@@ -120,6 +120,19 @@ func (d2p *drmaa2proxy) DRMSName() string {
 	return ""
 }
 
+// DRMSLoad calculates the load situation of the
+// DRMAA2 compatible cluster. 0 means "give me
+// all jobs you have" and 1 means "I won't accept
+// any jobs". 0.5 is the default load situation.
+func (d2p *drmaa2proxy) DRMSLoad() float64 {
+	var sm drmaa2.SessionManager
+	//d2p.ms.GetAllJobs(nil)
+	//d2p.ms.GetAllMachines(nil)
+	// calculate ration of pending vs running and
+	// use avg. runtime (and probably the machine count)
+	return 0.5
+}
+
 func (d2p *drmaa2proxy) RunJob(template ubercluster.JobTemplate) (string, error) {
 	if job, err := d2p.js.RunJob(ConvertUCJobTemplate(template)); err != nil {
 		return "", err

@@ -52,6 +52,7 @@ var (
 	runName     = run.Flag("name", "Reference name of the command.").Default("").String()
 	runQueue    = run.Flag("queue", "Queue name for the job.").Default("").String()
 	runCategory = run.Flag("category", "Job category / job class of the job.").Default("").String()
+	alg         = run.Flag("alg", "Automatic cluster selection when submitting jobs (\"rand\", \"prob\", \"load\")").Default("").String()
 
 	// operations on job
 	terminate      = app.Command("terminate", "Terminate operation.")
@@ -86,8 +87,9 @@ func main() {
 	// read in configuration
 	readConfig()
 
-	// based on cluster name create the address to send requests
-	clusteraddress := getClusterAddress(*cluster)
+	// based on cluster name or selection algorithm
+	// create the address to send requests
+	clusteraddress := selectClusterAddress(*cluster, *alg)
 
 	switch p {
 	case showJob.FullCommand():

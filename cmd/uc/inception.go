@@ -183,6 +183,10 @@ func (i *inception) DRMSName() string {
 	return "ubercluster"
 }
 
+func (i *inception) DRMSLoad() float64 {
+	return 0.5
+}
+
 func (i *inception) RunJob(template ubercluster.JobTemplate) (string, error) {
 	return "", nil
 }
@@ -195,6 +199,6 @@ func (i *inception) JobOperation(jobsessionname, operation, jobid string) (strin
 func inceptionMode(address string) {
 	var incept inception
 	incept.config = config // configuration contains all connected clusters
-	fmt.Println("Starting uc in inception mode as proxy listing at address: ", address)
+	fmt.Println("Starting uc in inception mode as proxy listening at address: ", address)
 	ubercluster.ProxyListenAndServe(address, "", "", *otp, &incept)
 }

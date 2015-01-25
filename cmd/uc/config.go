@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 )
 
@@ -115,5 +116,23 @@ func getClusterAddress(cluster string) string {
 		fmt.Println("Cluster name %s not found in configuration.", cluster)
 		os.Exit(1)
 	}
+	log.Println("Chosen cluster: ", cluster, clusteraddress)
 	return clusteraddress
+}
+
+func selectClusterAddress(cluster, alg string) string {
+	// a cluster selection algorithm chooses the right cluster
+	switch alg {
+	case "rand": // random scheduling
+		return getClusterAddress(randomScheduler(config))
+	case "prob": // probabilistic scheduling
+		return getClusterAddress(probabilisticScheduler(config))
+	case "load": // load based scheduling
+		return getClusterAddress(loadBasedScheduler(config))
+	}
+	if alg != "" {
+		fmt.Println("Unkown scheduler selection algorithm: ", alg)
+		os.Exit(2)
+	}
+	return getClusterAddress(cluster)
 }

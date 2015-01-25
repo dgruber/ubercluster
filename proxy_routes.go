@@ -37,6 +37,7 @@ type ProxyImplementer interface {
 	DRMSName() string
 	RunJob(template JobTemplate) (string, error)
 	JobOperation(jobsessionname, operation, jobid string) (string, error)
+	DRMSLoad() float64
 }
 
 type Routes []Route
@@ -87,6 +88,9 @@ var routes = Routes{
 	},
 	Route{
 		"msessionDRMSVersion", "GET", "/v1/msession/drmsversion", MakeMSessionDRMSVersionHandler,
+	},
+	Route{
+		"msessionDRMSload", "GET", "/v1/msession/drmsload", MakeMSessionDRMSLoadHandler,
 	},
 }
 

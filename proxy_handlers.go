@@ -169,6 +169,12 @@ func MakeMSessionDRMSVersionHandler(impl ProxyImplementer) http.HandlerFunc {
 	}
 }
 
+func MakeMSessionDRMSLoadHandler(impl ProxyImplementer) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(impl.DRMSLoad())
+	}
+}
+
 // Reads in JSON for DRMAA2 job template struct.
 func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
