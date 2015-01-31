@@ -73,7 +73,7 @@ var (
 	// filestaging interface
 	fs          = app.Command("fs", "Filesystem interface")
 	fsLs        = fs.Command("ls", "List all files in staging area.")
-	fsUp        = fs.Command("up", "Upload a file to staging area.")
+	fsUp        = fs.Command("up", "Upload files to staging area.")
 	fsUpFiles   = fsUp.Arg("files", "Path to files to upload.").Required().Strings()
 	fsDown      = fs.Command("down", "Download files from staging area.")
 	fsDownFiles = fsDown.Arg("files", "Filenames to download from staging area.").Required().Strings()
@@ -134,7 +134,7 @@ func main() {
 	case fsLs.FullCommand():
 		ubercluster.FsListFiles(*otp, clusteraddress, of)
 	case fsUp.FullCommand():
-		ubercluster.FsUploadFiles(*otp, clusteraddress, *fsDownFiles, of)
+		ubercluster.FsUploadFiles(*otp, clusteraddress, *fsUpFiles, of)
 	case fsDown.FullCommand():
 		ubercluster.FsDownloadFiles(*otp, clusteraddress, *fsDownFiles, of)
 	case incpt.FullCommand():

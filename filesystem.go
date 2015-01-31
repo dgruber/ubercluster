@@ -155,11 +155,14 @@ func FsListFiles(otp, clusteraddress string, of OutputFormater) {
 // fsUploadFiles uploads a given list of files to the
 // given cluster's staging area
 func FsUploadFiles(otp, clusteraddress string, files []string, of OutputFormater) {
-
+	log.Println("Uploading following files: ", files)
+	for _, file := range files {
+		UploadFile(otp, clusteraddress, file)
+	}
 }
 
 // fsDownloadFiles downloads a list list of files from a
 // the staging area of a given cluster
 func FsDownloadFiles(otp, clusteraddress string, files []string, of OutputFormater) {
-
+	fmt.Println("Not yet implemented. Accepting pull requests.")
 }
