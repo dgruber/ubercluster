@@ -317,22 +317,28 @@ func MakeListFilesHandler(impl ProxyImplementer) http.HandlerFunc {
 					http.Error(w, "Error in staging area", http.StatusForbidden)
 					return
 				} else {
-					if fis, err := dir.Readdir(-1); err != nil {
+					if fis, err := dir.Readdir(-1); err == nil {
+						log.Println("Files in staging directory found ")
 						fileinfos := make([]FileInfo, 0, len(fis))
 						for _, fi := range fis {
 							if fi.IsDir() == false {
 								var info FileInfo
-								info.filename = fi.Name()
-								info.bytes = fi.Size()
+								info.Filename = fi.Name()
+								info.Bytes = fi.Size()
 								if fi.Mode() == 0700 {
-									info.executable = true
+									info.Executable = true
 								} else {
-									info.executable = false
+									info.Executable = false
 								}
 								fileinfos = append(fileinfos, info)
+								log.Println("added: ", info.Filename)
 							}
 						}
-						json.NewEncoder(w).Encode(&fileinfos)
+						fmt.Println(fileinfos)
+						json.NewEncoder(w).Encode(fileinfos)
+					} else {
+						log.Println("Error during dir.Readdir: ", err)
+						http.Error(w, "Error in staging area", http.StatusForbidden)
 					}
 				}
 			}

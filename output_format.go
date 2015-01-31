@@ -53,20 +53,18 @@ type standardFormat struct {
 // PrintFiles writes information about each file in one
 // line in the configured output stream
 func (sf *standardFormat) PrintFiles(fs []FileInfo) {
-	for i, f := range fs {
-		if i != 0 {
-			fmt.Fprintln(sf.output)
-		}
-		kb := f.bytes
+	for _, f := range fs {
+		kb := f.Bytes
 		if kb != 0 {
 			kb /= 1024
 		}
 		var exec string
-		if f.executable == true {
+		if f.Executable == false {
 			exec = "readable"
 		} else {
 			exec = "executable"
 		}
-		fmt.Fprintf(sf.output, "%128s %16dkb %s", f.filename, kb, exec)
+		fmt.Fprintf(sf.output, "%-40s %12dkb %s", f.Filename, kb, exec)
+		fmt.Fprintln(sf.output)
 	}
 }

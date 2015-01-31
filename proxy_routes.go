@@ -96,7 +96,7 @@ var routes = Routes{
 		"uberclusterFileUpload", "POST", "/v1/ubercluster/fileupload", MakeUCFileUploadHandler,
 	},
 	Route{
-		"uberclusterFileList", "POST", "/v1/jsession/staging/files", MakeListFilesHandler,
+		"uberclusterFileList", "GET", "/v1/jsession/staging/files", MakeListFilesHandler,
 	},
 }
 

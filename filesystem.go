@@ -31,9 +31,9 @@ import (
 
 // FileInfo describes a file in the staging area
 type FileInfo struct {
-	filename   string
-	bytes      int64
-	executable bool
+	Filename   string `json:"filename"`
+	Bytes      int64  `json:"bytes"`
+	Executable bool   `json:"executable`
 }
 
 // checkUploadFilesystem pre-checks the configured directory which
@@ -125,7 +125,7 @@ func UploadFile(otp, clusteraddress, filename string) {
 // fsListFiles requests a list of files from the given
 // cluster and displays it
 func getFiles(otp, clusteraddress string) ([]FileInfo, error) {
-	request := fmt.Sprintf("%s%s%s", clusteraddress, "/jsession/staging/files")
+	request := fmt.Sprintf("%s%s", clusteraddress, "/jsession/staging/files")
 	log.Println("Requesting:" + request)
 	resp, err := UberGet(otp, request)
 	if err != nil {
