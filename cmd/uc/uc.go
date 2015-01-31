@@ -17,6 +17,7 @@
 package main
 
 import (
+	"github.com/dgruber/ubercluster"
 	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
 	"log"
@@ -29,10 +30,11 @@ func init() {
 }
 
 var (
-	app     = kingpin.New("uc", "A tool which can interact with multiple compute clusters.")
-	verbose = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
-	cluster = app.Flag("cluster", "Cluster name to interact with.").Default("default").String()
-	otp     = app.Flag("otp", "One time password (\"yubikey\") or shared secret.").Default("").String()
+	app       = kingpin.New("uc", "A tool which can interact with multiple compute clusters.")
+	verbose   = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
+	cluster   = app.Flag("cluster", "Cluster name to interact with.").Default("default").String()
+	otp       = app.Flag("otp", "One time password (\"yubikey\") or shared secret.").Default("").String()
+	outformat = app.Flag("format", "Output format specifier.").Default("default").String()
 
 	show               = app.Command("show", "Displays information about connected clusters.")
 	showJob            = show.Command("job", "Information about a particular job.")
@@ -53,6 +55,7 @@ var (
 	runQueue    = run.Flag("queue", "Queue name for the job.").Default("").String()
 	runCategory = run.Flag("category", "Job category / job class of the job.").Default("").String()
 	alg         = run.Flag("alg", "Automatic cluster selection when submitting jobs (\"rand\", \"prob\", \"load\")").Default("").String()
+	fileUp      = run.Flag("upload", "Path to job which is uploaded before execution.").Default("").String()
 
 	// operations on job
 	terminate      = app.Command("terminate", "Terminate operation.")
@@ -66,6 +69,14 @@ var (
 	resume      = app.Command("resume", "Resume operation.")
 	resumeJob   = resume.Command("job", "Resumes a suspended job in a cluster.")
 	resumeJobId = resumeJob.Arg("jobid", "Id of the job to resume.").Default("").String()
+
+	// filestaging interface
+	fs          = app.Command("fs", "Filesystem interface")
+	fsLs        = fs.Command("ls", "List all files in staging area.")
+	fsUp        = fs.Command("up", "Upload a file to staging area.")
+	fsUpFiles   = fsUp.Arg("files", "Path to files to upload.").Required().Strings()
+	fsDown      = fs.Command("down", "Download files from staging area.")
+	fsDownFiles = fsDown.Arg("files", "Filenames to download from staging area.").Required().Strings()
 
 	// configuration
 	cfg     = app.Command("config", "Configuration of cluster proxies.")
@@ -91,6 +102,9 @@ func main() {
 	// create the address to send requests
 	clusteraddress := selectClusterAddress(*cluster, *alg)
 
+	// output can be produced in different formats
+	of := ubercluster.MakeOutputFormater(*outformat)
+
 	switch p {
 	case showJob.FullCommand():
 		if showJobId != nil && *showJobId != "" {
@@ -108,6 +122,8 @@ func main() {
 	case showCategories.FullCommand():
 		showJobCategories(clusteraddress, "ubercluster", *showCategoriesName)
 	case run.FullCommand():
+		// TODO OTP missing!
+		ubercluster.UploadFile(*otp, clusteraddress, *fileUp)
 		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
 	case terminateJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "terminate", *terminateJobId)
@@ -115,6 +131,12 @@ func main() {
 		performOperation(clusteraddress, "ubercluster", "suspend", *suspendJobId)
 	case resumeJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "resume", *resumeJobId)
+	case fsLs.FullCommand():
+		ubercluster.FsListFiles(*otp, clusteraddress, of)
+	case fsUp.FullCommand():
+		ubercluster.FsUploadFiles(*otp, clusteraddress, *fsDownFiles, of)
+	case fsDown.FullCommand():
+		ubercluster.FsDownloadFiles(*otp, clusteraddress, *fsDownFiles, of)
 	case incpt.FullCommand():
 		inceptionMode(*incptPort)
 	}

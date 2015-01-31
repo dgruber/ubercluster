@@ -92,6 +92,12 @@ var routes = Routes{
 	Route{
 		"msessionDRMSload", "GET", "/v1/msession/drmsload", MakeMSessionDRMSLoadHandler,
 	},
+	Route{
+		"uberclusterFileUpload", "POST", "/v1/ubercluster/fileupload", MakeUCFileUploadHandler,
+	},
+	Route{
+		"uberclusterFileList", "POST", "/v1/jsession/staging/files", MakeListFilesHandler,
+	},
 }
 
 // Simple security through a shared secret
@@ -102,14 +108,14 @@ func MakeFixedSecretHandler(secret string, f http.HandlerFunc) http.HandlerFunc 
 			if otpFromClient == "" {
 				otpFromClient = r.PostFormValue("otp")
 			}
-			log.Println("OTP --> ", otpFromClient)
-			log.Println(*r)
-			log.Printf("OTP is set to %s and request is %s\n", secret, otpFromClient)
+			// log.Println(*r)
+			// log.Printf("OTP is set to %s and request is %s\n", secret, otpFromClient)
 			// check otp
 			if otpFromClient == secret {
 				f(w, r)
 			} else {
 				log.Println("Unauthorized access by ", r.RemoteAddr)
+				// slow down
 				http.Error(w, "authorization failed", http.StatusUnauthorized)
 				return
 			}
@@ -143,7 +149,6 @@ func NewProxyRouter(impl ProxyImplementer, otp string) *mux.Router {
 				Handler(MakeFixedSecretHandler(otp, route.MakeHandlerFunc(impl)))
 		}
 	}
-
 	return router
 }
 

@@ -20,9 +20,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 func getDRMAA2JobState(state string) JobState {
@@ -177,6 +180,15 @@ func MakeMSessionDRMSLoadHandler(impl ProxyImplementer) http.HandlerFunc {
 
 // Reads in JSON for DRMAA2 job template struct.
 func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
+	var workingDir string
+	if wd, wdErr := os.Getwd(); wdErr == nil {
+		log.Println("(proxy) adapt cwd to ", wd, "uploads")
+		workingDir = wd + "/uploads"
+	} else {
+		fmt.Println("Can't set working directory for the jobs.")
+		os.Exit(2)
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if body, err := ioutil.ReadAll(r.Body); err != nil {
 			log.Println("(proxy)", err)
@@ -186,6 +198,9 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 				log.Println("(proxy) Unmarshall error")
 				http.Error(w, uerr.Error(), http.StatusInternalServerError)
 			} else {
+				log.Println("(proxy) Set working dir for job ", workingDir)
+				jt.WorkingDirectory = workingDir
+				jt.RemoteCommand = workingDir + "/" + jt.RemoteCommand
 				log.Println("(proxy) Submit now job")
 				// Submit job in compute cluster
 				if jobid, joberr := impl.RunJob(jt); joberr != nil {
@@ -197,6 +212,65 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 				}
 			}
 		}
+	}
+}
+
+func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
+	if err := checkUploadFilesystem("uploads"); err != nil {
+		fmt.Println(err)
+		os.Exit(2)
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		// currently limited to 1GB until tested
+		const maxSize = 1024 * 1024 * 1024
+		if r.ContentLength > maxSize {
+			log.Println("File content too large", r.ContentLength)
+			http.Error(w, "File too large", http.StatusExpectationFailed)
+			return
+		}
+		r.Body = http.MaxBytesReader(w, r.Body, maxSize)
+		err := r.ParseMultipartForm(1024 * 1024 * 128)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusExpectationFailed)
+			return
+		}
+
+		file, header, err := r.FormFile("file")
+		if err != nil {
+			panic(err)
+		}
+		if strings.ContainsAny(header.Filename, "/\\!") || strings.Contains(header.Filename, "..") {
+			log.Println("File name contains invalid characters..", header.Filename)
+			http.Error(w, "File name contains invalid chars", http.StatusExpectationFailed)
+			return
+		}
+		dst, err := os.Create("uploads/" + header.Filename)
+		defer dst.Close()
+		if err != nil {
+			panic(err)
+		}
+
+		if written, err := io.Copy(dst, io.LimitReader(file, maxSize)); err != nil {
+			panic(err)
+		} else {
+			if written == maxSize {
+				log.Println("File upload too large.")
+				http.Error(w, "File too large", http.StatusExpectationFailed)
+				return
+			}
+		}
+		log.Println(r.FormValue("permission"))
+		if r.FormValue("permission") == "exec" {
+			// make the file an executable
+			if err := dst.Chmod(0700); err != nil {
+				log.Println(err)
+			} else {
+				log.Println("Made file executable.")
+			}
+		}
+
+		json.NewEncoder(w).Encode("File upload successful")
 	}
 }
 
@@ -217,6 +291,51 @@ func MakeJSessionJobManipulationHandler(impl ProxyImplementer) http.HandlerFunc 
 			json.NewEncoder(w).Encode(str)
 		} else {
 			json.NewEncoder(w).Encode(err)
+		}
+	}
+}
+
+// MakeUCListFilesHandler creates an http handler which serves
+// a list of files in the staging area of the proxy
+func MakeListFilesHandler(impl ProxyImplementer) http.HandlerFunc {
+	// TODO disallow based on config / startup params ...
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println("(ListFilesHandler) called")
+		// job session name must be the one created by d2proxy
+		// json.NewEncoder(w).Encode("invalid job session name")
+		if dir, err := os.Open("uploads"); err != nil {
+			fmt.Println("Can't open staging directory. ", err)
+			os.Exit(1)
+		} else {
+			if fi, err := dir.Stat(); err != nil {
+				log.Println("Can't stat file staging directory: ", err)
+				http.Error(w, "Error in staging area", http.StatusForbidden)
+				return
+			} else {
+				if fi.IsDir() == false {
+					log.Println("File staging directory not found: ", err)
+					http.Error(w, "Error in staging area", http.StatusForbidden)
+					return
+				} else {
+					if fis, err := dir.Readdir(-1); err != nil {
+						fileinfos := make([]FileInfo, 0, len(fis))
+						for _, fi := range fis {
+							if fi.IsDir() == false {
+								var info FileInfo
+								info.filename = fi.Name()
+								info.bytes = fi.Size()
+								if fi.Mode() == 0700 {
+									info.executable = true
+								} else {
+									info.executable = false
+								}
+								fileinfos = append(fileinfos, info)
+							}
+						}
+						json.NewEncoder(w).Encode(&fileinfos)
+					}
+				}
+			}
 		}
 	}
 }

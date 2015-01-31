@@ -125,7 +125,7 @@ func (d2p *drmaa2proxy) DRMSName() string {
 // all jobs you have" and 1 means "I won't accept
 // any jobs". 0.5 is the default load situation.
 func (d2p *drmaa2proxy) DRMSLoad() float64 {
-	var sm drmaa2.SessionManager
+	//var sm drmaa2.SessionManager
 	//d2p.ms.GetAllJobs(nil)
 	//d2p.ms.GetAllMachines(nil)
 	// calculate ration of pending vs running and
