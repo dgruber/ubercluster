@@ -84,7 +84,18 @@ The *config.json* file in **uc** directory needs to point to your cluster proxie
 
     $ uc run --arg=123 /bin/sleep
 
-#### ...and now in the "cluster1" cluster, adding a job name and selecting a queue (default is "all.q"):
+#### Upload the job file and execute it
+
+With recent check-ins also file staging is partially supported. By
+using the **upload** flag of the **run** command, the file is first
+uploaded to the "uploads" directory (per default a subdirectory of
+where you are starting the proxy) by http, then marked as executable.
+
+Other file staging capabilities are accessible by the **uc fs** command.
+
+    $ uc run --upload=testjob.sh testjob.sh
+
+#### ...and now let it run in the "cluster1" cluster, adding a job name and selecting a queue (default is "all.q"):
 
     $ uc --cluster=cluster1 run --queue=all.q --name=MyName --arg=123 /bin/sleep
     
@@ -103,6 +114,9 @@ Flags:
   --name=NAME          Reference name of the command.
   --queue=QUEUE        Queue name for the job.
   --category=CATEGORY  Job category / job class of the job.
+  --alg=ALG            Automatic cluster selection when submitting jobs ("rand", "prob", "load")
+  --upload=UPLOAD      Path to job which is uploaded before execution.
+
 
 Args:
   <command>  Command to submit.
@@ -158,6 +172,15 @@ Commands:
 
   resume job [<jobid>]
     Resumes a suspended job in a cluster.
+
+  fs ls
+    List all files in staging area.
+
+  fs up <files>
+    Upload a file to staging area.
+
+  fs down <files>
+    Download files from staging area.
 
   config list
     Lists all configured cluster proxies.
