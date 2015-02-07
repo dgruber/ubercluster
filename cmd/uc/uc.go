@@ -122,8 +122,7 @@ func main() {
 	case showCategories.FullCommand():
 		showJobCategories(clusteraddress, "ubercluster", *showCategoriesName)
 	case run.FullCommand():
-		// TODO OTP missing!
-		ubercluster.UploadFile(*otp, clusteraddress, *fileUp)
+		ubercluster.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
 		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
 	case terminateJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "terminate", *terminateJobId)
@@ -132,11 +131,11 @@ func main() {
 	case resumeJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "resume", *resumeJobId)
 	case fsLs.FullCommand():
-		ubercluster.FsListFiles(*otp, clusteraddress, of)
+		ubercluster.FsListFiles(*otp, clusteraddress, "ubercluster", of)
 	case fsUp.FullCommand():
-		ubercluster.FsUploadFiles(*otp, clusteraddress, *fsUpFiles, of)
+		ubercluster.FsUploadFiles(*otp, clusteraddress, "ubercluster", *fsUpFiles, of)
 	case fsDown.FullCommand():
-		ubercluster.FsDownloadFiles(*otp, clusteraddress, *fsDownFiles, of)
+		ubercluster.FsDownloadFiles(*otp, clusteraddress, "ubercluster", *fsDownFiles, of)
 	case incpt.FullCommand():
 		inceptionMode(*incptPort)
 	}

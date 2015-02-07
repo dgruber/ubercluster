@@ -346,6 +346,18 @@ func MakeListFilesHandler(impl ProxyImplementer) http.HandlerFunc {
 	}
 }
 
+func MakeDownloadFilesHandler(impl ProxyImplementer) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		if filename := vars["name"]; filename != "" {
+			log.Println("Serving file: ./uploads/", filename)
+			http.ServeFile(w, r, "./uploads/"+filename)
+		} else {
+			http.Error(w, "No filename given.", http.StatusForbidden)
+		}
+	}
+}
+
 func AutenticationErrorHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Authentication error")
 	http.NotFound(w, r)

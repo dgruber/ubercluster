@@ -63,6 +63,7 @@ func fileUpload(url string, params map[string]string, paramName, filePath string
 	var file *os.File
 
 	if file, err = os.Open(filePath); err != nil {
+		log.Println("Error when opening local file: ", nil)
 		return nil, err
 	}
 	defer file.Close()
@@ -97,11 +98,13 @@ func fileUpload(url string, params map[string]string, paramName, filePath string
 
 // uploadFile uploads a file given by the path to a given
 // cluster by setting a security key if required.
-func UploadFile(otp, clusteraddress, filename string) {
+func FsUploadFile(otp, clusteraddress, jsName, filename string) {
 	if filename == "" {
+		fmt.Println("No filename given.")
 		return // nothing to do
 	}
-	url := fmt.Sprintf("%s/ubercluster/fileupload", clusteraddress)
+	url := fmt.Sprintf("%s/jsession/%s/staging/upload", clusteraddress, jsName)
+	log.Println("Created url: ", url)
 	params := make(map[string]string)
 	params["permission"] = "exec"
 	// set otp
@@ -116,6 +119,8 @@ func UploadFile(otp, clusteraddress, filename string) {
 		if r, err := client.Do(req); err == nil {
 			r.Body.Close()
 			fmt.Println("Uploaded file ", filename, r.Status)
+		} else {
+			fmt.Println("Error during file upload: ", err)
 		}
 	}
 }
@@ -124,8 +129,8 @@ func UploadFile(otp, clusteraddress, filename string) {
 
 // fsListFiles requests a list of files from the given
 // cluster and displays it
-func getFiles(otp, clusteraddress string) ([]FileInfo, error) {
-	request := fmt.Sprintf("%s%s", clusteraddress, "/jsession/staging/files")
+func getFiles(otp, clusteraddress, jsName string) ([]FileInfo, error) {
+	request := fmt.Sprintf("%s/jsession/%s/staging/files", clusteraddress, jsName)
 	log.Println("Requesting:" + request)
 	resp, err := UberGet(otp, request)
 	if err != nil {
@@ -142,8 +147,11 @@ func getFiles(otp, clusteraddress string) ([]FileInfo, error) {
 	return fileinfo, nil
 }
 
-func FsListFiles(otp, clusteraddress string, of OutputFormater) {
-	if fi, err := getFiles(otp, clusteraddress); err != nil {
+// FsListFiles lists all files on the remote staging area,
+// theirs sizes, and if they are executable (i.e. can run
+// as remote jobs).
+func FsListFiles(otp, clusteraddress, jsName string, of OutputFormater) {
+	if fi, err := getFiles(otp, clusteraddress, jsName); err != nil {
 		fmt.Println("Error during fetching files in staging area: ", err)
 		os.Exit(1)
 	} else {
@@ -154,15 +162,42 @@ func FsListFiles(otp, clusteraddress string, of OutputFormater) {
 
 // fsUploadFiles uploads a given list of files to the
 // given cluster's staging area
-func FsUploadFiles(otp, clusteraddress string, files []string, of OutputFormater) {
+func FsUploadFiles(otp, clusteraddress, jsName string, files []string, of OutputFormater) {
 	log.Println("Uploading following files: ", files)
 	for _, file := range files {
-		UploadFile(otp, clusteraddress, file)
+		FsUploadFile(otp, clusteraddress, jsName, file)
+	}
+}
+
+func DownloadFile(otp, clusteraddress, jsName, file string) {
+	url := fmt.Sprintf("%s/jsession/%s/staging/file/%s", clusteraddress, jsName, file)
+	log.Println("Using url: ", url)
+	if f, err := os.Create(file); err != nil {
+		fmt.Println("Error during creation of file: ", err)
+		os.Exit(1)
+	} else {
+		defer f.Close()
+		if response, err := http.Get(url); err != nil {
+			fmt.Println("Error during fetching file: ", err)
+			os.Exit(1)
+		} else {
+			defer response.Body.Close()
+			fmt.Println("Copy file now...")
+			size, err := io.Copy(f, response.Body)
+			if err != nil {
+				fmt.Println("Error while downloading", url, "-", err)
+				return
+			}
+			fmt.Printf("Downloaded file %s (%d bytes)\n", file, size)
+		}
 	}
 }
 
 // fsDownloadFiles downloads a list list of files from a
 // the staging area of a given cluster
-func FsDownloadFiles(otp, clusteraddress string, files []string, of OutputFormater) {
-	fmt.Println("Not yet implemented. Accepting pull requests.")
+func FsDownloadFiles(otp, clusteraddress, jsName string, files []string, of OutputFormater) {
+	log.Println("Downloading following files: ", files)
+	for _, file := range files {
+		DownloadFile(otp, clusteraddress, jsName, file)
+	}
 }

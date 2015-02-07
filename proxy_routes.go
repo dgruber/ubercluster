@@ -93,10 +93,13 @@ var routes = Routes{
 		"msessionDRMSload", "GET", "/v1/msession/drmsload", MakeMSessionDRMSLoadHandler,
 	},
 	Route{
-		"uberclusterFileUpload", "POST", "/v1/ubercluster/fileupload", MakeUCFileUploadHandler,
+		"uberclusterFileUpload", "POST", "/v1/jsession/{jsname}/staging/upload", MakeUCFileUploadHandler,
 	},
 	Route{
-		"uberclusterFileList", "GET", "/v1/jsession/staging/files", MakeListFilesHandler,
+		"uberclusterFileList", "GET", "/v1/jsession/{jsname}/staging/files", MakeListFilesHandler,
+	},
+	Route{
+		"uberclusterFileList", "GET", "/v1/jsession/{jsname}/staging/file/{name}", MakeDownloadFilesHandler,
 	},
 }
 
