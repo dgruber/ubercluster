@@ -27,6 +27,8 @@ func (d2p *drmaa2proxy) initializeDRMAA2(jsName string) error {
 	var sm drmaa2.SessionManager
 	var err error
 
+	d2p.sm = sm
+
 	if d2p.ms, err = sm.OpenMonitoringSession(""); err != nil {
 		log.Fatal("Couldn't open DRMAA2 MonitoringSession")
 	}
@@ -204,6 +206,16 @@ func ConvertD2Queue(il []drmaa2.Queue) (ol []ubercluster.Queue) {
 	for _, i := range il {
 		var o ubercluster.Queue
 		o.Name = i.Name
+		ol = append(ol, o)
+	}
+	return ol
+}
+
+func ConvertD2Sessions(il []string) (ol []ubercluster.Session) {
+	ol = make([]ubercluster.Session, 0, 0)
+	for _, i := range il {
+		var o ubercluster.Session
+		o.Name = i
 		ol = append(ol, o)
 	}
 	return ol

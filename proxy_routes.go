@@ -33,6 +33,7 @@ type ProxyImplementer interface {
 	GetAllMachines(machines []string) ([]Machine, error)
 	GetAllQueues(queues []string) ([]Queue, error)
 	GetAllCategories() ([]string, error)
+	GetAllSessions(session []string) ([]string, error)
 	DRMSVersion() string
 	DRMSName() string
 	RunJob(template JobTemplate) (string, error)
@@ -53,7 +54,7 @@ type Route struct {
 
 var routes = Routes{
 	Route{
-		"JobSubmit", "POST", "/v1/jsession/default/run", MakeJSessionSubmitHandler,
+		"JobSubmit", "POST", "/v1/jsession/{jsname}/run", MakeJSessionSubmitHandler,
 	},
 	// Operations are: suspend resume delete (hold / release)
 	Route{
@@ -96,10 +97,13 @@ var routes = Routes{
 		"uberclusterFileUpload", "POST", "/v1/jsession/{jsname}/staging/upload", MakeUCFileUploadHandler,
 	},
 	Route{
-		"uberclusterFileList", "GET", "/v1/jsession/{jsname}/staging/files", MakeListFilesHandler,
+		"jsessionSessions", "GET", "/v1/jsessions", MakeSessionListHandler,
 	},
 	Route{
-		"uberclusterFileList", "GET", "/v1/jsession/{jsname}/staging/file/{name}", MakeDownloadFilesHandler,
+		"jsessionFiles", "GET", "/v1/jsession/{jsname}/staging/files", MakeListFilesHandler,
+	},
+	Route{
+		"jsessionFileDownload", "GET", "/v1/jsession/{jsname}/staging/file/{name}", MakeDownloadFilesHandler,
 	},
 }
 

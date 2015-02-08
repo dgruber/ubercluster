@@ -45,6 +45,7 @@ var (
 )
 
 type drmaa2proxy struct {
+	sm drmaa2.SessionManager
 	ms *drmaa2.MonitoringSession
 	js *drmaa2.JobSession
 }
@@ -102,6 +103,12 @@ func (d2p *drmaa2proxy) GetAllQueues(queues []string) ([]ubercluster.Queue, erro
 
 func (d2p *drmaa2proxy) GetAllCategories() ([]string, error) {
 	return d2p.js.GetJobCategories()
+}
+
+func (d2p *drmaa2proxy) GetAllSessions(sessions []string) ([]string, error) {
+	log.Println("GetAllSesssions")
+	snl, err := d2p.sm.GetJobSessionNames()
+	return snl, err
 }
 
 func (d2p *drmaa2proxy) DRMSVersion() string {
@@ -181,7 +188,6 @@ func (d2p *drmaa2proxy) JobOperation(jobsessionname, operation, jobid string) (s
 	return "", errors.New("job not found")
 }
 
-// implementation specific methods
 func main() {
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 

@@ -47,6 +47,8 @@ var (
 	showQueueName      = showQueue.Arg("name", "Name of queue to show.").Default("all").String()
 	showCategories     = show.Command("category", "Information about job categories.")
 	showCategoriesName = showCategories.Arg("name", "Name of job category to show.").Default("all").String()
+	showSession        = show.Command("session", "Information about job sessions.")
+	showSessionName    = showSession.Arg("name", "Name of the job session to show.").Default("all").String()
 
 	run         = app.Command("run", "Submits an application to a cluster.")
 	runCommand  = run.Arg("command", "Command to submit.").Required().String()
@@ -120,7 +122,9 @@ func main() {
 	case showQueue.FullCommand():
 		showQueues(clusteraddress, *showQueueName)
 	case showCategories.FullCommand():
-		showJobCategories(clusteraddress, "ubercluster", *showCategoriesName)
+		showJobCategories(clusteraddress, "ubercluster", *showSessionName)
+	case showSession.FullCommand():
+		showJobSessions(clusteraddress, *showSessionName)
 	case run.FullCommand():
 		ubercluster.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
 		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)

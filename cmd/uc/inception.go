@@ -162,6 +162,13 @@ func (i *inception) GetAllQueues(queues []string) ([]ubercluster.Queue, error) {
 	return allqueues, nil
 }
 
+func (i *inception) GetAllSessions(session []string) ([]string, error) {
+	// TODO implement
+	allsessions := make([]string, 0, 0)
+	log.Println("GetAllSessions() not implemented")
+	return allsessions, nil
+}
+
 func (i *inception) GetAllCategories() ([]string, error) {
 	cat := make([]string, 0, 0)
 	for _, c := range i.config.Cluster {

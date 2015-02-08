@@ -257,3 +257,49 @@ func showJobCategories(clusteraddress, jsession, category string) {
 		fmt.Println(cat)
 	}
 }
+
+func getJobSessions(clusteraddress, jsession string) []string {
+	url := fmt.Sprintf("%s/jsessions", clusteraddress)
+	log.Println("Requesting:" + url)
+	if resp, err := ubercluster.UberGet(*otp, url); err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	} else {
+		defer resp.Body.Close()
+		var jsList []string
+		json.NewDecoder(resp.Body).Decode(&jsList)
+		found := false
+		if jsession != "all" {
+			for _, js := range jsList {
+				if js == jsession {
+					found = true
+				}
+			}
+			if found == true {
+				return []string{jsession}
+			} else {
+				return []string{}
+			}
+		}
+		return jsList
+	}
+	return nil
+}
+
+// showJobSessions requests all job sessions available on the
+// given cluster and prints them out to the user.
+func showJobSessions(clusteraddress, jsession string) {
+	jSessions := getJobSessions(clusteraddress, jsession)
+	if len(jSessions) >= 1 {
+		for _, js := range jSessions {
+			fmt.Println(js)
+		}
+	} else {
+		if jsession == "all" {
+			fmt.Println("No job session found.")
+			os.Exit(1)
+		}
+		fmt.Printf("Job session %s does not exist.\n", jsession)
+		os.Exit(1)
+	}
+}

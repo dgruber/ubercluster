@@ -216,7 +216,9 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 }
 
 func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
-	if err := checkUploadFilesystem("uploads"); err != nil {
+	stagingDir := "uploads"
+
+	if err := checkUploadFilesystem(stagingDir); err != nil {
 		fmt.Println(err)
 		os.Exit(2)
 	}
@@ -245,7 +247,7 @@ func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
 			http.Error(w, "File name contains invalid chars", http.StatusExpectationFailed)
 			return
 		}
-		dst, err := os.Create("uploads/" + header.Filename)
+		dst, err := os.Create(stagingDir + "/" + header.Filename)
 		defer dst.Close()
 		if err != nil {
 			panic(err)
@@ -354,6 +356,18 @@ func MakeDownloadFilesHandler(impl ProxyImplementer) http.HandlerFunc {
 			http.ServeFile(w, r, "./uploads/"+filename)
 		} else {
 			http.Error(w, "No filename given.", http.StatusForbidden)
+		}
+	}
+}
+
+// MakeSessionListHandler implements an http handler which serves
+// a list of (DRMAA2) job sessions available on this proxy.
+func MakeSessionListHandler(impl ProxyImplementer) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if sessions, err := impl.GetAllSessions(nil); err == nil {
+			json.NewEncoder(w).Encode(sessions)
+		} else {
+			log.Println("Error in GetAllSessions: ", err)
 		}
 	}
 }
