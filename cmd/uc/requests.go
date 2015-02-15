@@ -126,7 +126,8 @@ func submitJob(clusteraddress, jobname, cmd, arg, queue, category, otp string) {
 	url := fmt.Sprintf("%s%s", clusteraddress, "/jsession/default/run")
 	log.Println("POST to URL:", url)
 	log.Println("Submit template: ", string(jtb))
-	if resp, err := ubercluster.UberPost(otp, url, "application/json", bytes.NewBuffer(jtb)); err != nil {
+	if resp, err := ubercluster.UberPost(otp, url, "application/json",
+		bytes.NewBuffer(jtb)); err != nil {
 		fmt.Println("Job submission error: ", err)
 	} else {
 		fmt.Println("Job submitted successfully: ", resp.Status)

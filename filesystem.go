@@ -116,6 +116,7 @@ func FsUploadFile(otp, clusteraddress, jsName, filename string) {
 		os.Exit(2)
 	} else {
 		var client http.Client
+		log.Println("Request: ", req)
 		if r, err := client.Do(req); err == nil {
 			r.Body.Close()
 			fmt.Println("Uploaded file ", filename, r.Status)

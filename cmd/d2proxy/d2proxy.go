@@ -141,6 +141,17 @@ func (d2p *drmaa2proxy) DRMSLoad() float64 {
 }
 
 func (d2p *drmaa2proxy) RunJob(template ubercluster.JobTemplate) (string, error) {
+	jt := ConvertUCJobTemplate(template)
+	// workaround: if file is in staging area exexcute it otherwise
+	// the one in standard path
+	localFile := jt.WorkingDirectory + "/" + jt.RemoteCommand
+	if fi, err := os.Stat(localFile); err == nil {
+		if fi.IsDir() == false {
+			// since we have a file in staging area we execute it :/
+			jt.RemoteCommand = localFile
+		}
+	}
+
 	if job, err := d2p.js.RunJob(ConvertUCJobTemplate(template)); err != nil {
 		return "", err
 	} else {

@@ -200,7 +200,8 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 			} else {
 				log.Println("(proxy) Set working dir for job ", workingDir)
 				jt.WorkingDirectory = workingDir
-				jt.RemoteCommand = workingDir + "/" + jt.RemoteCommand
+				// required when file is in staging area but not for general path
+				// jt.RemoteCommand = workingDir + "/" + jt.RemoteCommand
 				log.Println("(proxy) Submit now job")
 				// Submit job in compute cluster
 				if jobid, joberr := impl.RunJob(jt); joberr != nil {
@@ -240,6 +241,7 @@ func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
 
 		file, header, err := r.FormFile("file")
 		if err != nil {
+			log.Println("Error: ", err)
 			panic(err)
 		}
 		if strings.ContainsAny(header.Filename, "/\\!") || strings.Contains(header.Filename, "..") {
@@ -254,6 +256,7 @@ func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
 		}
 
 		if written, err := io.Copy(dst, io.LimitReader(file, maxSize)); err != nil {
+			log.Println("Error: ", err)
 			panic(err)
 		} else {
 			if written == maxSize {
@@ -261,6 +264,7 @@ func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
 				http.Error(w, "File too large", http.StatusExpectationFailed)
 				return
 			}
+			log.Println("File saved successfully")
 		}
 		log.Println(r.FormValue("permission"))
 		if r.FormValue("permission") == "exec" {
