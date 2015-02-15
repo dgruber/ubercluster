@@ -58,7 +58,7 @@ var routes = Routes{
 	},
 	// Operations are: suspend resume delete (hold / release)
 	Route{
-		"JobManipulation", "POST", "/v1/jsession/{jsname}/{operation}/{jobid}", MakeJSessionJobManipulationHandler,
+		"JobManipulation", "POST", "/v1/jsession/{jsname}/{operation:suspend|resume|delete}/{jobid}", MakeJSessionJobManipulationHandler,
 	},
 	Route{
 		"JobCategories", "GET", "/v1/jsession/{jsname}/jobcategories", MakeJSessionCategoriesHandler,

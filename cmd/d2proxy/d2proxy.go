@@ -140,19 +140,24 @@ func (d2p *drmaa2proxy) DRMSLoad() float64 {
 	return 0.5
 }
 
+// RunJob submits a job through the DRMAA2 API into a Univa Grid Engine
+// cluster. If the file to run is found in the file staging area then
+// the absolut path to this file is set. This removes the burden to deal
+// with the PATH. In case it is not found the file is expected to be in the
+// path.
 func (d2p *drmaa2proxy) RunJob(template ubercluster.JobTemplate) (string, error) {
 	jt := ConvertUCJobTemplate(template)
 	// workaround: if file is in staging area exexcute it otherwise
 	// the one in standard path
 	localFile := jt.WorkingDirectory + "/" + jt.RemoteCommand
+	log.Println("Local file: ", localFile)
 	if fi, err := os.Stat(localFile); err == nil {
 		if fi.IsDir() == false {
 			// since we have a file in staging area we execute it :/
 			jt.RemoteCommand = localFile
 		}
 	}
-
-	if job, err := d2p.js.RunJob(ConvertUCJobTemplate(template)); err != nil {
+	if job, err := d2p.js.RunJob(jt); err != nil {
 		return "", err
 	} else {
 		return job.GetId(), nil
