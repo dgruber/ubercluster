@@ -22,7 +22,7 @@
 		},
 		{
 			"ImportPath": "github.com/dgruber/drmaa2",
-			"Rev": "6e06546b72d1fb99e38fbfb5595d935e5f002a50"
+			"Rev": "96724b9b56565302e0ef655156a2f2a6e2c989b3"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",

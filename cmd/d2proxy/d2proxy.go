@@ -168,36 +168,36 @@ func (d2p *drmaa2proxy) JobOperation(jobsessionname, operation, jobid string) (s
 	// The filter is missing in GetJobs() hence until this is
 	// fixed in Go DRMAA2 we use a non-scaling method and do
 	// filtering on our own.
-	if jobs, err := d2p.js.GetJobs(); err != nil {
+	jobInfo := drmaa2.CreateJobInfo()
+	jobInfo.Id = jobid
+	if jobs, err := d2p.js.GetJobs(&jobInfo); err != nil {
 		log.Println("Error while DRMAA2 GetJobs()")
 		return "", err
 	} else {
 		log.Println("Got following jobs in job session: ", jobs)
 		for _, job := range jobs {
 			log.Println("Job id: ", job.GetId())
-			if job.GetId() == jobid || job.GetId() == jobid+".1" {
-				switch operation {
-				case "suspend":
-					if err := job.Suspend(); err != nil {
-						return "", err
-					} else {
-						return "success", nil
-					}
-				case "resume":
-					if err := job.Resume(); err != nil {
-						return "", err
-					} else {
-						return "success", nil
-					}
-				case "terminate":
-					if err := job.Terminate(); err != nil {
-						return "", err
-					} else {
-						return "success", nil
-					}
-				default:
-					return "", errors.New("unsupported operation")
+			switch operation {
+			case "suspend":
+				if err := job.Suspend(); err != nil {
+					return "", err
+				} else {
+					return "success", nil
 				}
+			case "resume":
+				if err := job.Resume(); err != nil {
+					return "", err
+				} else {
+					return "success", nil
+				}
+			case "terminate":
+				if err := job.Terminate(); err != nil {
+					return "", err
+				} else {
+					return "success", nil
+				}
+			default:
+				return "", errors.New("unsupported operation")
 			}
 		}
 	}
