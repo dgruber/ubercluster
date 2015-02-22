@@ -124,11 +124,11 @@ func selectClusterAddress(cluster, alg string) string {
 	// a cluster selection algorithm chooses the right cluster
 	switch alg {
 	case "rand": // random scheduling
-		return getClusterAddress(randomScheduler(config))
+		return getClusterAddress(MakeNewScheduler(RandomSchedulerType, config).Impl.SelectCluster())
 	case "prob": // probabilistic scheduling
-		return getClusterAddress(probabilisticScheduler(config))
+		return getClusterAddress(MakeNewScheduler(ProbabilisticSchedulerType, config).Impl.SelectCluster())
 	case "load": // load based scheduling
-		return getClusterAddress(loadBasedScheduler(config))
+		return getClusterAddress(MakeNewScheduler(LoadBasedSchedulerType, config).Impl.SelectCluster())
 	}
 	if alg != "" {
 		fmt.Println("Unkown scheduler selection algorithm: ", alg)

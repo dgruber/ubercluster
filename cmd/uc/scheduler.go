@@ -27,9 +27,56 @@ import (
 	"time"
 )
 
+// just seed random number generator one time
 var seeded bool = false
 
-// Implements the cluster selection algorithms
+// Scheduler is an interface all scheduler needs to
+// implement.
+type Scheduler interface {
+	SelectCluster() string
+}
+
+type SchedulerType int
+
+const (
+	ProbabilisticSchedulerType SchedulerType = iota
+	RandomSchedulerType
+	LoadBasedSchedulerType
+)
+
+type SchedulerImpl struct {
+	Impl Scheduler
+}
+
+// MakeNewScheduler create a new scheduler implementation based
+// on the SchedulerType and the cluster Config.
+func MakeNewScheduler(st SchedulerType, config Config) *SchedulerImpl {
+	if seeded == false {
+		rand.Seed(time.Now().UTC().UnixNano())
+	}
+	var s SchedulerImpl
+	switch st {
+	case ProbabilisticSchedulerType:
+		var ps ProbSched
+		ps.conf = config
+		s.Impl = &ps
+	case RandomSchedulerType:
+		s.Impl = &RandomSched{
+			conf: config,
+		}
+	case LoadBasedSchedulerType:
+		s.Impl = &LoadBasedSched{
+			conf: config,
+		}
+	}
+	return &s
+}
+
+// Implements the cluster selection algorithms.
+
+type ProbSched struct {
+	conf Config
+}
 
 // probabilisticScheduler returns the name of the selected
 // cluster from the configuration. The selection is based
@@ -38,9 +85,46 @@ var seeded bool = false
 // has a higher probability to be chosen than one with 0.9.
 // If all clusters have the same load all of them have the
 // same probability to be chosen.
-func probabilisticScheduler(conf Config) string {
-	// TODO
-	return conf.Cluster[0].Name
+func (ps *ProbSched) SelectCluster() string {
+	// get load of each cluster
+	selection := probabilisticSelection(getAllLoadValues(ps.conf))
+	if selection >= 0 {
+		log.Println("Selected cluster %s due to probabilistic selection.",
+			ps.conf.Cluster[selection].Name)
+		return ps.conf.Cluster[selection].Name
+	}
+	log.Println("No cluster selected, using default cluster.")
+	return "default"
+}
+
+func probabilisticSelection(loads []float64) int {
+	// invert the load to get a value which refledts the likelyhood
+	// multiply by a large value (since we are choosing int random
+	// numbers later on)
+	// add the value to what we calculated for the cluster before
+	if len(loads) <= 0 {
+		return -1
+	}
+	likelyhood := make([]int64, len(loads), len(loads))
+	for k, v := range loads {
+		if k >= 1 {
+			likelyhood[k] = likelyhood[k-1] + int64(((1.0 - v) * 10000))
+		} else {
+			likelyhood[k] = int64((1.0 - v) * 10000)
+		}
+	}
+	// if all cluster reports 1.0 -> chose default cluster 0
+	if likelyhood[len(loads)-1] <= 0 {
+		return -1
+	}
+	// choose cluster depending on its likelyhood
+	selection := rand.Int63n(likelyhood[len(loads)-1] - 1)
+	for k, v := range likelyhood {
+		if v > selection {
+			return k
+		}
+	}
+	return -1
 }
 
 type loadValues struct {
@@ -88,18 +172,24 @@ func minLoad(load []float64) int {
 	return index
 }
 
-// loadBasedScheduler is a simple scheduler that selects
-// the cluster with the lowest load.
-func loadBasedScheduler(conf Config) string {
-	// get all load values (time consuming)
-	load := getAllLoadValues(conf)
-	return conf.Cluster[minLoad(load)].Name
+type LoadBasedSched struct {
+	conf Config
 }
 
-// randomScheduler selects a cluster purely radomly
-func randomScheduler(conf Config) string {
-	if !seeded {
-		rand.Seed(time.Now().UTC().UnixNano())
-	}
-	return conf.Cluster[rand.Intn(len(conf.Cluster))].Name
+// SelectCluster of the LoadBasedSched is a simple scheduler
+// that selects the cluster with the lowest load.
+func (lbs *LoadBasedSched) SelectCluster() string {
+	// get all load values (time consuming)
+	load := getAllLoadValues(lbs.conf)
+	return lbs.conf.Cluster[minLoad(load)].Name
+}
+
+type RandomSched struct {
+	conf Config
+}
+
+// SelectCluster of the random scheduler selects a
+// a cluster randomly and returns its name.
+func (rs *RandomSched) SelectCluster() string {
+	return rs.conf.Cluster[rand.Intn(len(rs.conf.Cluster))].Name
 }
