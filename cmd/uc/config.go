@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"os"
+	"strconv"
 )
 
 // configuration for proxies of compute clusters which can be queried
@@ -35,7 +36,7 @@ type ClusterConfig struct {
 	// the address used when no cluster is explicitly referenced
 	Name            string
 	Address         string // like http://localhost:8888
-	ProtocolVersion string // the protocol the proxy speaks
+	ProtocolVersion string // the protocol the proxy speaks "v1"
 }
 
 func (c ClusterConfig) String() string {
@@ -103,7 +104,7 @@ func listConfig(clusteraddress string) {
 
 // setClusterAddress searches the address of the cluster to contact to
 // in the configuration ("default" point to default cluster)
-func getClusterAddress(cluster string) string {
+func getClusterAddress(cluster string) (string, string) {
 	var clusteraddress string
 	for i, _ := range config.Cluster {
 		if cluster == config.Cluster[i].Name {
@@ -117,10 +118,22 @@ func getClusterAddress(cluster string) string {
 		os.Exit(1)
 	}
 	log.Println("Chosen cluster: ", cluster, clusteraddress)
-	return clusteraddress
+	return clusteraddress, cluster
 }
 
-func selectClusterAddress(cluster, alg string) string {
+// makeTestConfig creates a configuration for testing
+func makeTestConfig(amount int) Config {
+	var conf Config
+	conf.Cluster = make([]ClusterConfig, amount, amount)
+	for i := 0; i < amount; i++ {
+		conf.Cluster[i].Name = "cluster" + strconv.Itoa(i)
+		conf.Cluster[i].Address = "10.0.0." + strconv.Itoa(i%255)
+		conf.Cluster[i].ProtocolVersion = "v1"
+	}
+	return conf
+}
+
+func selectClusterAddress(cluster, alg string) (string, string) {
 	// a cluster selection algorithm chooses the right cluster
 	switch alg {
 	case "rand": // random scheduling

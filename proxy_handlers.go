@@ -178,6 +178,12 @@ func MakeMSessionDRMSLoadHandler(impl ProxyImplementer) http.HandlerFunc {
 	}
 }
 
+// RunJobResult is the JSON answer when a job could successully
+// started in the cluster.
+type RunJobResult struct {
+	JobId string `json:"jobid"`
+}
+
 // Reads in JSON for DRMAA2 job template struct.
 func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 	var workingDir string
@@ -206,10 +212,14 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 				// Submit job in compute cluster
 				if jobid, joberr := impl.RunJob(jt); joberr != nil {
 					log.Println("(proxy) Error during job submission: ", joberr)
-					http.Error(w, uerr.Error(), http.StatusInternalServerError)
+					http.Error(w, joberr.Error(), http.StatusInternalServerError)
 
 				} else {
 					log.Println("(proxy) Job successfully submitted: ", jobid)
+					// TODO return cluster name
+					var result RunJobResult
+					result.JobId = jobid
+					json.NewEncoder(w).Encode(result)
 				}
 			}
 		}

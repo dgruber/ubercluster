@@ -102,7 +102,7 @@ func main() {
 
 	// based on cluster name or selection algorithm
 	// create the address to send requests
-	clusteraddress := selectClusterAddress(*cluster, *alg)
+	clusteraddress, clustername := selectClusterAddress(*cluster, *alg)
 
 	// output can be produced in different formats
 	of := ubercluster.MakeOutputFormater(*outformat)
@@ -126,8 +126,10 @@ func main() {
 	case showSession.FullCommand():
 		showJobSessions(clusteraddress, *showSessionName)
 	case run.FullCommand():
-		ubercluster.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
-		submitJob(clusteraddress, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
+		if *fileUp != "" {
+			ubercluster.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
+		}
+		submitJob(clusteraddress, clustername, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
 	case terminateJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "terminate", *terminateJobId)
 	case suspendJob.FullCommand():

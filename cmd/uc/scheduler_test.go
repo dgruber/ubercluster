@@ -59,3 +59,53 @@ func BenchmarkProbabilisticSelection(b *testing.B) {
 		probabilisticSelection(loads)
 	}
 }
+
+func TestRandomScheduling(t *testing.T) {
+	for amountOfCluster := 1; amountOfCluster < 10; amountOfCluster++ {
+		conf := makeTestConfig(amountOfCluster)
+		sched := MakeNewScheduler(RandomSchedulerType, conf)
+		names := make([]string, 10000, 10000)
+		for i := 0; i < 10000; i++ {
+			names[i] = sched.Impl.SelectCluster()
+		}
+		// check how many different names are selected
+		m := make(map[string]int)
+		for i := 0; i < 10000; i++ {
+			if v, exists := m[names[i]]; exists {
+				m[names[i]] = v + 1
+			} else {
+				m[names[i]] = 1
+			}
+		}
+		// each cluster schoould be selected not more than 10% more or less
+		// than each other
+		expectedOccurence := int(10000 / amountOfCluster)
+		for k, v := range m {
+			if v > int(float64(expectedOccurence)*1.2) {
+				t.Errorf("Cluster %s was choosen too often: %d\n", k, v)
+			}
+			if v < int(float64(expectedOccurence)*0.9) {
+				t.Errorf("Cluster %s was choosen too less: %d\n", k, v)
+			}
+			//fmt.Printf("Good! Cluster %s was chosen %d times\n", k, v)
+		}
+	}
+}
+
+func BenchmarkRandomScheduling(b *testing.B) {
+	conf := makeTestConfig(10)
+	sched := MakeNewScheduler(RandomSchedulerType, conf)
+	for i := 0; i < b.N; i++ {
+		sched.Impl.SelectCluster()
+	}
+}
+
+func BenchmarkLoadBasedScheduling(b *testing.B) {
+	// doesn't make much sense since it tries to get the load
+	// from the clusters (which does not exist of course)
+	conf := makeTestConfig(10)
+	sched := MakeNewScheduler(LoadBasedSchedulerType, conf)
+	for i := 0; i < b.N; i++ {
+		sched.Impl.SelectCluster()
+	}
+}

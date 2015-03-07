@@ -53,6 +53,7 @@ type SchedulerImpl struct {
 func MakeNewScheduler(st SchedulerType, config Config) *SchedulerImpl {
 	if seeded == false {
 		rand.Seed(time.Now().UTC().UnixNano())
+		seeded = true
 	}
 	var s SchedulerImpl
 	switch st {

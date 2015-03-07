@@ -108,7 +108,7 @@ func getYubiKey() string {
 }
 
 // submitJob creates a new job in the given cluster
-func submitJob(clusteraddress, jobname, cmd, arg, queue, category, otp string) {
+func submitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, otp string) {
 	var jt ubercluster.JobTemplate
 	// fill a DRMAA2 job template and send it over to the proxy
 	jt.RemoteCommand = cmd
@@ -130,7 +130,15 @@ func submitJob(clusteraddress, jobname, cmd, arg, queue, category, otp string) {
 		bytes.NewBuffer(jtb)); err != nil {
 		fmt.Println("Job submission error: ", err)
 	} else {
-		fmt.Println("Job submitted successfully: ", resp.Status)
+		// fmt.Println("Job submitted successfully: ", resp.Status)
+		decoder := json.NewDecoder(resp.Body)
+		var answer ubercluster.RunJobResult
+		if err := decoder.Decode(&answer); err != nil {
+			fmt.Println("Error during decoding: ", err)
+		} else {
+			fmt.Println("Jobid: ", answer.JobId)
+			fmt.Println("Cluster: ", clustername)
+		}
 	}
 }
 
