@@ -95,6 +95,10 @@
 			"Rev": "c89e5683853da5ed97731b507dcd8cda2b11afaf"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "c89e5683853da5ed97731b507dcd8cda2b11afaf"
+		},
+		{
 			"ImportPath": "gopkg.in/alecthomas/kingpin.v1",
 			"Comment": "v1.3.2",
 			"Rev": "261e7fbc88a2987695fb2240a6d8ec3ee15739c8"
