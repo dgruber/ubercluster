@@ -8,6 +8,10 @@
 			"Rev": "3883ac1ce943878302255f538fce319d23226223"
 		},
 		{
+			"ImportPath": "github.com/GeertJohan/yubigo",
+			"Rev": "b1764f04aa9ba3c98a15084e7e13c1a69753e1da"
+		},
+		{
 			"ImportPath": "github.com/alecthomas/units",
 			"Rev": "eaf541876f0d9e17c669524a99f6f585ba362fbd"
 		},
@@ -40,6 +44,16 @@
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "740c764bc6149d3f1806231418adb9f52c11bcbf"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Comment": "v1.1.0-33-g17ea479",
+			"Rev": "17ea479729ee427265ac1e913443018350946ddf"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-28-g8adf9e1",
+			"Rev": "8adf9e1730c55cdc590de7d49766cb2acc88d8f2"
 		},
 		{
 			"ImportPath": "github.com/spf13/cast",

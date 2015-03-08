@@ -18,6 +18,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dgruber/drmaa2"
 	"github.com/dgruber/ubercluster"
 	"gopkg.in/alecthomas/kingpin.v1"
@@ -42,6 +43,8 @@ var (
 	certFile   = app.Flag("certFile", "Path to certification file for secure connections (TLS).").Default("").String()
 	keyFile    = app.Flag("keyFile", "Path to key file for secure connections (TLS).").Default("").String()
 	otp        = app.Flag("otp", "One time password settings (\"yubikey\") or a fixed shared secret.").Default("").String()
+	yubiID     = app.Flag("yubiID", "Yubi client ID if otp is set to yubikey.").Default("").String()
+	yubiSecret = app.Flag("yubiSecret", "Yubi secret key if otp is set to yubikey").Default("").String()
 )
 
 type drmaa2proxy struct {
@@ -212,7 +215,34 @@ func main() {
 	}
 
 	// read-in config
-	initializeD2Proxy()
+	cfg, err := initializeD2Proxy()
+	if err != nil {
+		fmt.Println("Error during reading in config file: ", err)
+		os.Exit(1)
+	}
+
+	// merge config with cli arguments
+	if cfg != nil {
+		// file overrides only unset and default values
+		if *cliPort == ":8888" {
+			*cliPort = cfg.AddressPort
+		}
+		if *certFile == "" {
+			*certFile = cfg.CertFile
+		}
+		if *keyFile == "" {
+			*keyFile = cfg.KeyFile
+		}
+		if *otp == "" {
+			*otp = cfg.OTP
+		}
+		if *yubiID == "" {
+			*yubiID = cfg.YubiID
+		}
+		if *yubiSecret == "" {
+			*yubiSecret = cfg.YubiSecret
+		}
+	}
 
 	// Open MonitoringSession and create a JobSession with the given name
 	var proxy drmaa2proxy
@@ -220,5 +250,10 @@ func main() {
 	defer proxy.js.Close()
 	defer proxy.ms.CloseMonitoringSession()
 
-	ubercluster.ProxyListenAndServe(*cliPort, *certFile, *keyFile, *otp, &proxy)
+	var sc ubercluster.SecConfig
+	sc.OTP = *otp
+	sc.YubiID = *yubiID
+	sc.YubiSecret = *yubiSecret
+
+	ubercluster.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &proxy)
 }

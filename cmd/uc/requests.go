@@ -17,11 +17,11 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/dgruber/ubercluster"
+	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"log"
 	"os"
@@ -100,11 +100,18 @@ func showJobs(clusteraddress, state, user string) {
 	}
 }
 
+// getYubiKey requests a one time password on command line from
+// the user and returns it - the one time password is created
+// by pressing the yubikey button
 func getYubiKey() string {
 	fmt.Printf("Press yubikey button: ")
-	bio := bufio.NewReader(os.Stdin)
-	line, _, _ := bio.ReadLine()
-	return string(line)
+	if pw, err := terminal.ReadPassword(0); err != nil {
+		fmt.Println("Error reading in password from stdin: ", err)
+		os.Exit(1)
+	} else {
+		return string(pw)
+	}
+	return ""
 }
 
 // submitJob creates a new job in the given cluster

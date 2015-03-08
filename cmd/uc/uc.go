@@ -107,6 +107,15 @@ func main() {
 	// output can be produced in different formats
 	of := ubercluster.MakeOutputFormater(*outformat)
 
+	// read in one time password in case of yubikey
+	var yubi bool
+	if *otp == "yubikey" {
+		yubi = true
+		*otp = getYubiKey()
+	} else {
+		yubi = false
+	}
+
 	switch p {
 	case showJob.FullCommand():
 		if showJobId != nil && *showJobId != "" {
@@ -128,6 +137,9 @@ func main() {
 	case run.FullCommand():
 		if *fileUp != "" {
 			ubercluster.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
+			if yubi {
+				*otp = getYubiKey() // we need another one time password for submission
+			}
 		}
 		submitJob(clusteraddress, clustername, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
 	case terminateJob.FullCommand():

@@ -290,6 +290,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	ubercluster.ProxyListenAndServe(*cliPort, *certFile, *keyFile, *otp, &d1)
+	var sc ubercluster.SecConfig
+	sc.OTP = *otp
+
+	ubercluster.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &d1)
 	defer d1.Session.Exit()
 }

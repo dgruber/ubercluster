@@ -18,6 +18,7 @@ package ubercluster
 
 import (
 	"fmt"
+	"github.com/GeertJohan/yubigo"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -133,13 +134,50 @@ func MakeFixedSecretHandler(secret string, f http.HandlerFunc) http.HandlerFunc 
 	}
 }
 
-// TODO Make Yubikey handler
+// global authenticfication instance which is used by all
+// http handlers - a bit hacky
+var yubiAuth *yubigo.YubiAuth
+
+// MaeYubikeyHandler creates an http handler which is protected by an
+// yubkikey one-time-password verification. The OTP needs to be given
+// by either a form value ("otp") or a POST form value ("otp").
+func MakeYubikeyHandler(id, key string, f http.HandlerFunc) http.HandlerFunc {
+	var errAuth error
+	if yubiAuth == nil {
+		if yubiAuth, errAuth = yubigo.NewYubiAuth(id, key); errAuth != nil {
+			fmt.Println("Error during yubiAuth instance creation: ", errAuth)
+			os.Exit(1)
+		} else {
+			log.Println("Succesfully created yubiAuth instance.")
+		}
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		otpFromClient := r.FormValue("otp")
+		if otpFromClient == "" {
+			otpFromClient = r.PostFormValue("otp")
+		}
+		// verify OTP
+		if result, ok, err := yubiAuth.Verify(otpFromClient); ok {
+			// successfully verified the one time password
+			f(w, r)
+		} else {
+			if err != nil {
+				// something really bad! probably best to abort
+				fmt.Println("Verification of yubikey failed with error: ", err)
+				os.Exit(1)
+			}
+			log.Println("Verification of yubikey OTP failed: ", result)
+			log.Println("Unauthorized access by ", r.RemoteAddr)
+			http.Error(w, "authorization failed", http.StatusUnauthorized)
+		}
+	}
+}
 
 // NewProxyRouter creates a mux router for matching
 // http requests to handlers.
-func NewProxyRouter(impl ProxyImplementer, otp string) *mux.Router {
+func NewProxyRouter(impl ProxyImplementer, sc SecConfig) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
-	if otp == "" {
+	if sc.OTP == "" {
 		for _, route := range routes {
 			router.
 				Methods(route.Method).
@@ -147,26 +185,47 @@ func NewProxyRouter(impl ProxyImplementer, otp string) *mux.Router {
 				Name(route.Name).
 				Handler(route.MakeHandlerFunc(impl))
 		}
-	} else {
+	} else if sc.OTP == "yubikey" {
+		// add yubikey one-time-password verifcation for each call
+		if sc.YubiID == "" || sc.YubiSecret == "" {
+			fmt.Println("yubikey is configured but ID or Secret not set!")
+			os.Exit(1)
+		}
 		for _, route := range routes {
 			router.
 				Methods(route.Method).
 				Path(route.Pattern).
 				Name(route.Name).
-				Handler(MakeFixedSecretHandler(otp, route.MakeHandlerFunc(impl)))
+				Handler(MakeYubikeyHandler(sc.YubiID, sc.YubiSecret, route.MakeHandlerFunc(impl)))
+		}
+	} else {
+		// fixed key
+		for _, route := range routes {
+			router.
+				Methods(route.Method).
+				Path(route.Pattern).
+				Name(route.Name).
+				Handler(MakeFixedSecretHandler(sc.OTP, route.MakeHandlerFunc(impl)))
 		}
 	}
 	return router
 }
 
-func ProxyListenAndServe(addr, certFile, keyFile, otp string, impl ProxyImplementer) {
+// Security related configuration settings for the ubercluster Proxy
+type SecConfig struct {
+	OTP        string // secret key or "yubikey"
+	YubiID     string // ID of yubiservice in case of yubikey https://upgrade.yubico.com/getapikey/
+	YubiSecret string // Secret of yubiservice in case of yubikey https://upgrade.yubico.com/getapikey/
+}
+
+func ProxyListenAndServe(addr, certFile, keyFile string, sc SecConfig, impl ProxyImplementer) {
 	if certFile != "" && keyFile != "" {
-		if err := http.ListenAndServeTLS(addr, certFile, keyFile, NewProxyRouter(impl, otp)); err != nil {
+		if err := http.ListenAndServeTLS(addr, certFile, keyFile, NewProxyRouter(impl, sc)); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 	} else {
-		if err := http.ListenAndServe(addr, NewProxyRouter(impl, otp)); err != nil {
+		if err := http.ListenAndServe(addr, NewProxyRouter(impl, sc)); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
