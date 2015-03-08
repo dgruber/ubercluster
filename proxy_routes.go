@@ -164,11 +164,13 @@ func MakeYubikeyHandler(id, key string, f http.HandlerFunc) http.HandlerFunc {
 			if err != nil {
 				// something really bad! probably best to abort
 				fmt.Println("Verification of yubikey failed with error: ", err)
-				os.Exit(1)
+				log.Println("Unauthorized access by ", r.RemoteAddr)
+				http.Error(w, "authorization failed", http.StatusUnauthorized)
+			} else {
+				log.Println("Verification of yubikey OTP failed: ", result)
+				log.Println("Unauthorized access by ", r.RemoteAddr)
+				http.Error(w, "authorization failed", http.StatusUnauthorized)
 			}
-			log.Println("Verification of yubikey OTP failed: ", result)
-			log.Println("Unauthorized access by ", r.RemoteAddr)
-			http.Error(w, "authorization failed", http.StatusUnauthorized)
 		}
 	}
 }
