@@ -9,7 +9,7 @@ Simple multi-clustering tool based on an open standard for job submission and cl
 It consists of following components:
 - **uc** [![Build Status](https://travis-ci.org/dgruber/ubercluster.svg)](https://travis-ci.org/dgruber/ubercluster): Main command line tool to interact with the compute clusters (show status / start jobs). Pure Go - can run everywhere where you can compile Go (MacOS / Linux / Windows / ...). Communicates with proxies. (Requires [godep to be installed](https://github.com/tools/godep)!)
 - **d2proxy**: Proxy which runs on a submit host of a compute cluster (Grid Engine cluster). Based on Go DRMAA2 (which is based on the DRMAA2 C API).
-- **d1proxy**: Proxy for DRMAA (version 1) compatible clusters. Does not support most concepts but job submission works.
+- **d1proxy**: Example proxy for DRMAA (version 1) compatible clusters. Does not support most concepts but job submission works. Good starting point if you want to create your own proxy (which is btw. extremely easy).
 
 ![uc image](https://raw.githubusercontent.com/dgruber/ubercluster/master/img/uc.png)
 
