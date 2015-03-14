@@ -216,9 +216,23 @@ Args:
 Please be aware that when exporting over http also others in the same network
 (or even publicly) can access the clusters. Job modifications are only allowed
 for jobs started in the same DRMAA2 job session (usually only those submitted
-by *uc*).
+by *uc*) so only jobs started with *uc* can be deleted, held, suspended...
 
-Currently there is only a simple security mode build in. When starting the proxy
-with *--otp=MySuperSecretGeneratedString* then only *uc* requests also with using 
-*--otp=MySuperSecretGeneratedString* are allowed. Future improvements are planned,
-like TLS support (the proxy already supports it) and integrating yubikey OTPs.
+In order to protect your system several security mechanism are implemented:
+
+No security: Just starting proxy without any parameter. All traffic is unencrypted
+and accessible by everybody who can access the network port.
+
+Low security: Starting the proxy with --otp=MySuperSecretKey.
+Unencrypted, the caller needs to know the key and add that key with 
+*uc --otp=MySuperSecretKey ..* (or in the configuration).
+
+High security (but no encryption): Starting the proxy with *--otp=yubikey*.
+All client calls must have *--otp=yubikey* set. The *uc* tool is 
+requesting from the client a one-time-password which is generated
+by the yubikey USB stick (obviously this is an requirement). The 
+proxy needs to be registered first as service and started with the
+secret key and service id.
+
+Future improvements are planned:
+- TLS support (the proxies already supports it).
