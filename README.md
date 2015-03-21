@@ -221,18 +221,22 @@ by *uc*) so only jobs started with *uc* can be deleted, held, suspended...
 In order to protect your system several security mechanism are implemented:
 
 No security: Just starting proxy without any parameter. All traffic is unencrypted
-and accessible by everybody who can access the network port.
+and the proxy accessible by everybody who can access the network port.
 
 Low security: Starting the proxy with --otp=MySuperSecretKey.
 Unencrypted, the caller needs to know the key and add that key with 
-*uc --otp=MySuperSecretKey ..* (or in the configuration).
+all *uc* commands (like *uc --otp=MySuperSecretKey ..*) or in the configuration.
+The key is part of each http request.
 
 High security (but no encryption): Starting the proxy with *--otp=yubikey*.
 All client calls must have *--otp=yubikey* set. The *uc* tool is 
 requesting from the client a one-time-password which is generated
 by the yubikey USB stick (obviously this is an requirement). The 
 proxy needs to be registered first as service and started with the
-secret key and service id.
+secret key and service id. Using the official servers you can register
+your service here: https://upgrade.yubico.com/getapikey/
+Alternatively you can setup your own OTP validation server
+(like https://github.com/digintLab/yubikey-server).
 
 Future improvements are planned:
 - TLS support (the proxies already supports it).
