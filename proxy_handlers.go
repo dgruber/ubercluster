@@ -19,6 +19,7 @@ package ubercluster
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dgruber/ubercluster/pkg/types"
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
@@ -335,10 +336,10 @@ func MakeListFilesHandler(impl ProxyImplementer) http.HandlerFunc {
 				} else {
 					if fis, err := dir.Readdir(-1); err == nil {
 						log.Println("Files in staging directory found ")
-						fileinfos := make([]FileInfo, 0, len(fis))
+						fileinfos := make([]types.FileInfo, 0, len(fis))
 						for _, fi := range fis {
 							if fi.IsDir() == false {
-								var info FileInfo
+								var info types.FileInfo
 								info.Filename = fi.Name()
 								info.Bytes = fi.Size()
 								if fi.Mode() == 0700 {

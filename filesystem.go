@@ -21,6 +21,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/dgruber/ubercluster/pkg/output"
+	"github.com/dgruber/ubercluster/pkg/types"
 	"io"
 	"log"
 	"mime/multipart"
@@ -28,13 +30,6 @@ import (
 	"os"
 	"path/filepath"
 )
-
-// FileInfo describes a file in the staging area
-type FileInfo struct {
-	Filename   string `json:"filename"`
-	Bytes      int64  `json:"bytes"`
-	Executable bool   `json:"executable`
-}
 
 // checkUploadFilesystem pre-checks the configured directory which
 // is going to used for files staging during startup of the proxy
@@ -96,7 +91,7 @@ func fileUpload(url string, params map[string]string, paramName, filePath string
 	}
 }
 
-// uploadFile uploads a file given by the path to a given
+// FsUploadFile uploads a file given by the path to a given
 // cluster by setting a security key if required.
 func FsUploadFile(otp, clusteraddress, jsName, filename string) {
 	if filename == "" {
@@ -130,7 +125,7 @@ func FsUploadFile(otp, clusteraddress, jsName, filename string) {
 
 // fsListFiles requests a list of files from the given
 // cluster and displays it
-func getFiles(otp, clusteraddress, jsName string) ([]FileInfo, error) {
+func getFiles(otp, clusteraddress, jsName string) ([]types.FileInfo, error) {
 	request := fmt.Sprintf("%s/jsession/%s/staging/files", clusteraddress, jsName)
 	log.Println("Requesting:" + request)
 	resp, err := UberGet(otp, request)
@@ -141,7 +136,7 @@ func getFiles(otp, clusteraddress, jsName string) ([]FileInfo, error) {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
-	var fileinfo []FileInfo
+	var fileinfo []types.FileInfo
 	if err := decoder.Decode(&fileinfo); err != nil {
 		return fileinfo, err
 	}
@@ -151,7 +146,7 @@ func getFiles(otp, clusteraddress, jsName string) ([]FileInfo, error) {
 // FsListFiles lists all files on the remote staging area,
 // theirs sizes, and if they are executable (i.e. can run
 // as remote jobs).
-func FsListFiles(otp, clusteraddress, jsName string, of OutputFormater) {
+func FsListFiles(otp, clusteraddress, jsName string, of output.OutputFormater) {
 	if fi, err := getFiles(otp, clusteraddress, jsName); err != nil {
 		fmt.Println("Error during fetching files in staging area: ", err)
 		os.Exit(1)
@@ -163,7 +158,7 @@ func FsListFiles(otp, clusteraddress, jsName string, of OutputFormater) {
 
 // fsUploadFiles uploads a given list of files to the
 // given cluster's staging area
-func FsUploadFiles(otp, clusteraddress, jsName string, files []string, of OutputFormater) {
+func FsUploadFiles(otp, clusteraddress, jsName string, files []string, of output.OutputFormater) {
 	log.Println("Uploading following files: ", files)
 	for _, file := range files {
 		FsUploadFile(otp, clusteraddress, jsName, file)
@@ -194,9 +189,9 @@ func DownloadFile(otp, clusteraddress, jsName, file string) {
 	}
 }
 
-// fsDownloadFiles downloads a list list of files from a
+// FsDownloadFiles downloads a list list of files from a
 // the staging area of a given cluster
-func FsDownloadFiles(otp, clusteraddress, jsName string, files []string, of OutputFormater) {
+func FsDownloadFiles(otp, clusteraddress, jsName string, files []string, of output.OutputFormater) {
 	log.Println("Downloading following files: ", files)
 	for _, file := range files {
 		DownloadFile(otp, clusteraddress, jsName, file)

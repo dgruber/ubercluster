@@ -18,6 +18,7 @@ package main
 
 import (
 	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/output"
 	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
 	"log"
@@ -105,7 +106,7 @@ func main() {
 	clusteraddress, clustername := selectClusterAddress(*cluster, *alg)
 
 	// output can be produced in different formats
-	of := ubercluster.MakeOutputFormater(*outformat)
+	of := output.MakeOutputFormater(*outformat)
 
 	// read in one time password in case of yubikey
 	var yubi bool
