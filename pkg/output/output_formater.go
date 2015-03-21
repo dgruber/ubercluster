@@ -18,9 +18,9 @@ package output
 
 import (
 	"fmt"
+	"github.com/dgruber/ubercluster/pkg/types"
 	"log"
 	"os"
-   "github.com/dgruber/ubercluster/pkg/types"
 )
 
 // OutputFormater is an interface which defines
@@ -39,12 +39,18 @@ func MakeOutputFormater(format string) OutputFormater {
 		var sf StandardFormat
 		sf.output = os.Stdout
 		return &sf
-   case "JSON":
-   case "XML":
-      
+	case "JSON", "json":
+		log.Println("JSON output format selected.")
+		var jf JSONFormat
+		jf.output = os.Stdout
+		return &jf
+	case "XML", "xml":
+		log.Println("XML output format selected.")
+		var jf XMLFormat
+		jf.output = os.Stdout
+		return &jf
 	}
 	fmt.Println("Error selecting output format module.")
 	os.Exit(1)
 	return nil
 }
-
