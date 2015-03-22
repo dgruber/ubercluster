@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/dgruber/drmaa2"
 	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/types"
 	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
 	"log"
@@ -55,7 +56,7 @@ type drmaa2proxy struct {
 
 // implement neccessary methods to fulfill the ProxyImplementer interface
 
-func (d2p *drmaa2proxy) GetJobInfosByFilter(filtered bool, filter ubercluster.JobInfo) []ubercluster.JobInfo {
+func (d2p *drmaa2proxy) GetJobInfosByFilter(filtered bool, filter types.JobInfo) []types.JobInfo {
 	var f *drmaa2.JobInfo
 	if filtered {
 		convertedFilter := ConvertUCJobInfo(filter)
@@ -65,7 +66,7 @@ func (d2p *drmaa2proxy) GetJobInfosByFilter(filtered bool, filter ubercluster.Jo
 		log.Println("Error during GetAllJobs(): ", err)
 		return nil
 	} else {
-		jis := make([]ubercluster.JobInfo, 0, 0)
+		jis := make([]types.JobInfo, 0, 0)
 		for _, j := range ji {
 			jobinfo, _ := j.GetJobInfo()
 			d2ji := ConvertD2JobInfo(*jobinfo)
@@ -75,7 +76,7 @@ func (d2p *drmaa2proxy) GetJobInfosByFilter(filtered bool, filter ubercluster.Jo
 	}
 }
 
-func (d2p *drmaa2proxy) GetJobInfo(jobid string) *ubercluster.JobInfo {
+func (d2p *drmaa2proxy) GetJobInfo(jobid string) *types.JobInfo {
 	filter := drmaa2.CreateJobInfo()
 	filter.Id = jobid
 	if ji, err := d2p.ms.GetAllJobs(&filter); err == nil {
@@ -88,7 +89,7 @@ func (d2p *drmaa2proxy) GetJobInfo(jobid string) *ubercluster.JobInfo {
 	return nil
 }
 
-func (d2p *drmaa2proxy) GetAllMachines(machines []string) ([]ubercluster.Machine, error) {
+func (d2p *drmaa2proxy) GetAllMachines(machines []string) ([]types.Machine, error) {
 	if m, err := d2p.ms.GetAllMachines(machines); err != nil {
 		return nil, err
 	} else {
@@ -96,7 +97,7 @@ func (d2p *drmaa2proxy) GetAllMachines(machines []string) ([]ubercluster.Machine
 	}
 }
 
-func (d2p *drmaa2proxy) GetAllQueues(queues []string) ([]ubercluster.Queue, error) {
+func (d2p *drmaa2proxy) GetAllQueues(queues []string) ([]types.Queue, error) {
 	if q, err := d2p.ms.GetAllQueues(queues); err != nil {
 		return nil, err
 	} else {
@@ -148,7 +149,7 @@ func (d2p *drmaa2proxy) DRMSLoad() float64 {
 // the absolut path to this file is set. This removes the burden to deal
 // with the PATH. In case it is not found the file is expected to be in the
 // path.
-func (d2p *drmaa2proxy) RunJob(template ubercluster.JobTemplate) (string, error) {
+func (d2p *drmaa2proxy) RunJob(template types.JobTemplate) (string, error) {
 	jt := ConvertUCJobTemplate(template)
 	// workaround: if file is in staging area exexcute it otherwise
 	// the one in standard path

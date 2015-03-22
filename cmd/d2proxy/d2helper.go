@@ -19,7 +19,7 @@ package main
 import (
 	"fmt"
 	"github.com/dgruber/drmaa2"
-	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/types"
 	"log"
 )
 
@@ -139,12 +139,12 @@ func getJobInfoByState(ms *drmaa2.MonitoringSession, state string) []drmaa2.JobI
 // to be removed as soon as there is a pure Go DRMAA2
 // interface to work with.
 
-func ConvertD2JobInfo(ji drmaa2.JobInfo) (uc ubercluster.JobInfo) {
+func ConvertD2JobInfo(ji drmaa2.JobInfo) (uc types.JobInfo) {
 	uc.Id = ji.Id
 	uc.ExitStatus = ji.ExitStatus
 	uc.TerminatingSignal = ji.TerminatingSignal
 	uc.Annotation = ji.Annotation
-	uc.State = (ubercluster.JobState)(ji.State)
+	uc.State = (types.JobState)(ji.State)
 	uc.SubState = ji.SubState
 	uc.AllocatedMachines = make([]string, len(ji.AllocatedMachines), len(ji.AllocatedMachines))
 	copy(uc.AllocatedMachines, ji.AllocatedMachines)
@@ -160,7 +160,7 @@ func ConvertD2JobInfo(ji drmaa2.JobInfo) (uc ubercluster.JobInfo) {
 	return uc
 }
 
-func ConvertUCJobInfo(ji ubercluster.JobInfo) (uc drmaa2.JobInfo) {
+func ConvertUCJobInfo(ji types.JobInfo) (uc drmaa2.JobInfo) {
 	uc.Id = ji.Id
 	uc.ExitStatus = ji.ExitStatus
 	uc.TerminatingSignal = ji.TerminatingSignal
@@ -181,10 +181,10 @@ func ConvertUCJobInfo(ji ubercluster.JobInfo) (uc drmaa2.JobInfo) {
 	return uc
 }
 
-func ConvertD2Machine(il []drmaa2.Machine) (ol []ubercluster.Machine) {
-	ol = make([]ubercluster.Machine, 0, 0)
+func ConvertD2Machine(il []drmaa2.Machine) (ol []types.Machine) {
+	ol = make([]types.Machine, 0, 0)
 	for _, i := range il {
-		var o ubercluster.Machine
+		var o types.Machine
 		o.Name = i.Name
 		o.Available = i.Available
 		o.Sockets = i.Sockets
@@ -193,35 +193,35 @@ func ConvertD2Machine(il []drmaa2.Machine) (ol []ubercluster.Machine) {
 		o.Load = i.Load
 		o.PhysicalMemory = i.PhysicalMemory
 		o.VirtualMemory = i.VirtualMemory
-		o.Architecture = (ubercluster.CPU)(i.Architecture)
-		o.OSVersion = (ubercluster.Version)(i.OSVersion)
-		o.OS = (ubercluster.OS)(i.OS)
+		o.Architecture = (types.CPU)(i.Architecture)
+		o.OSVersion = (types.Version)(i.OSVersion)
+		o.OS = (types.OS)(i.OS)
 		ol = append(ol, o)
 	}
 	return ol
 }
 
-func ConvertD2Queue(il []drmaa2.Queue) (ol []ubercluster.Queue) {
-	ol = make([]ubercluster.Queue, 0, 0)
+func ConvertD2Queue(il []drmaa2.Queue) (ol []types.Queue) {
+	ol = make([]types.Queue, 0, 0)
 	for _, i := range il {
-		var o ubercluster.Queue
+		var o types.Queue
 		o.Name = i.Name
 		ol = append(ol, o)
 	}
 	return ol
 }
 
-func ConvertD2Sessions(il []string) (ol []ubercluster.Session) {
-	ol = make([]ubercluster.Session, 0, 0)
+func ConvertD2Sessions(il []string) (ol []types.Session) {
+	ol = make([]types.Session, 0, 0)
 	for _, i := range il {
-		var o ubercluster.Session
+		var o types.Session
 		o.Name = i
 		ol = append(ol, o)
 	}
 	return ol
 }
 
-func ConvertUCJobTemplate(u ubercluster.JobTemplate) (jt drmaa2.JobTemplate) {
+func ConvertUCJobTemplate(u types.JobTemplate) (jt drmaa2.JobTemplate) {
 	jt.RemoteCommand = u.RemoteCommand
 	jt.Args = make([]string, len(u.Args), len(u.Args))
 	copy(jt.Args, u.Args)
