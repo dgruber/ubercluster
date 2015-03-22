@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/types"
 	"log"
 	"strings"
 	"sync"
@@ -38,7 +39,7 @@ type inception struct {
 type jiProtected struct {
 	sync.Mutex
 	sync.WaitGroup
-	jobinfos []ubercluster.JobInfo
+	jobinfos []types.JobInfo
 }
 
 // requestJobInfos requests job infos of jobs in the
@@ -55,9 +56,9 @@ func requestJobInfos(ji *jiProtected, state string, address string) {
 	ji.Done()
 }
 
-func (i *inception) GetJobInfosByFilter(filtered bool, filter ubercluster.JobInfo) []ubercluster.JobInfo {
+func (i *inception) GetJobInfosByFilter(filtered bool, filter types.JobInfo) []types.JobInfo {
 	var jip jiProtected
-	jip.jobinfos = make([]ubercluster.JobInfo, 0, 0)
+	jip.jobinfos = make([]types.JobInfo, 0, 0)
 	jip.Add(len(i.config.Cluster))
 	// request clusters in parallel and wait for all of them
 	for _, c := range i.config.Cluster {
@@ -74,7 +75,7 @@ func (i *inception) GetJobInfosByFilter(filtered bool, filter ubercluster.JobInf
 	return jip.jobinfos
 }
 
-func getJobFromCluster(i *inception, clustername string, jobid string) (*ubercluster.JobInfo, error) {
+func getJobFromCluster(i *inception, clustername string, jobid string) (*types.JobInfo, error) {
 	// check if cluster name is known
 	address := ""
 	version := "v1"
@@ -98,7 +99,7 @@ func getJobFromCluster(i *inception, clustername string, jobid string) (*uberclu
 	return nil, errors.New("Couldn't find clustername in config: " + clustername)
 }
 
-func (i *inception) GetJobInfo(jobid string) *ubercluster.JobInfo {
+func (i *inception) GetJobInfo(jobid string) *types.JobInfo {
 	// search job id in all connected clusters
 	// if it has a postfix - only in that cluster
 	// 1301@mybiggridenginecluster search 1301 in the given cluster
@@ -119,8 +120,8 @@ func (i *inception) GetJobInfo(jobid string) *ubercluster.JobInfo {
 	return nil
 }
 
-func (i *inception) GetAllMachines(machines []string) ([]ubercluster.Machine, error) {
-	allmachines := make([]ubercluster.Machine, 0, 0)
+func (i *inception) GetAllMachines(machines []string) ([]types.Machine, error) {
+	allmachines := make([]types.Machine, 0, 0)
 	for _, c := range i.config.Cluster {
 		log.Println("Requesting from: ", c.Address)
 		// we don't request our own address...
@@ -142,8 +143,8 @@ func (i *inception) GetAllMachines(machines []string) ([]ubercluster.Machine, er
 
 // GetAllQueues returns all queue names from all clusters which are
 // connected to the uc tool.
-func (i *inception) GetAllQueues(queues []string) ([]ubercluster.Queue, error) {
-	allqueues := make([]ubercluster.Queue, 0, 0)
+func (i *inception) GetAllQueues(queues []string) ([]types.Queue, error) {
+	allqueues := make([]types.Queue, 0, 0)
 	// TODO go functions of course
 	for _, c := range i.config.Cluster {
 		log.Println("Requesting from: ", c.Address)
@@ -197,7 +198,7 @@ func (i *inception) DRMSLoad() float64 {
 	return 0.5
 }
 
-func (i *inception) RunJob(template ubercluster.JobTemplate) (string, error) {
+func (i *inception) RunJob(template types.JobTemplate) (string, error) {
 	return "", nil
 }
 

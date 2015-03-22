@@ -20,6 +20,5 @@ package types
 type FileInfo struct {
 	Filename   string `json:"filename"`
 	Bytes      int64  `json:"bytes"`
-	Executable bool   `json:"executable`
+	Executable bool   `json:"executable"`
 }
-

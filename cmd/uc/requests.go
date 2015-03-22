@@ -21,13 +21,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/output"
+	"github.com/dgruber/ubercluster/pkg/types"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"log"
 	"os"
 )
 
-func getJob(clusteraddress, jobid string) (ubercluster.JobInfo, error) {
+func getJob(clusteraddress, jobid string) (types.JobInfo, error) {
 	request := fmt.Sprintf("%s%s%s", clusteraddress, "/msession/jobinfo/", jobid)
 	log.Println("Requesting:" + request)
 	resp, err := ubercluster.UberGet(*otp, request)
@@ -38,23 +40,23 @@ func getJob(clusteraddress, jobid string) (ubercluster.JobInfo, error) {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
-	var jobinfo ubercluster.JobInfo
+	var jobinfo types.JobInfo
 	if err := decoder.Decode(&jobinfo); err != nil {
 		return jobinfo, err
 	}
 	return jobinfo, nil
 }
 
-func showJobDetails(clustername, jobid string) {
+func showJobDetails(clustername, jobid string, of output.OutputFormater) {
 	jobinfo, err := getJob(clustername, jobid)
 	if err == nil {
-		emulateQstat(jobinfo)
+		of.PrintJobDetails(jobinfo)
 	} else {
 		fmt.Println("Error: ", err)
 	}
 }
 
-func getJobs(clusteraddress, state, user string) []ubercluster.JobInfo {
+func getJobs(clusteraddress, state, user string) []types.JobInfo {
 	firstSet := false
 	request := fmt.Sprintf("%s%s", clusteraddress, "/msession/jobinfos")
 	if state != "" && state != "all" {
@@ -78,17 +80,17 @@ func getJobs(clusteraddress, state, user string) []ubercluster.JobInfo {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
-	var joblist []ubercluster.JobInfo
+	var joblist []types.JobInfo
 	decoder.Decode(&joblist)
 	log.Println(joblist)
 
 	return joblist
 }
 
-func showJobs(clusteraddress, state, user string) {
+func showJobs(clusteraddress, state, user string, of output.OutputFormater) {
 	joblist := getJobs(clusteraddress, state, user)
 	for index, _ := range joblist {
-		emulateQstat(joblist[index])
+		of.PrintJobDetails(joblist[index])
 		fmt.Println()
 	}
 	if len(joblist) == 0 {
@@ -116,7 +118,7 @@ func getYubiKey() string {
 
 // submitJob creates a new job in the given cluster
 func submitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, otp string) {
-	var jt ubercluster.JobTemplate
+	var jt types.JobTemplate
 	// fill a DRMAA2 job template and send it over to the proxy
 	jt.RemoteCommand = cmd
 	jt.JobName = jobname
@@ -149,12 +151,12 @@ func submitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, 
 	}
 }
 
-func showQueues(clustername, queue string) {
-	showMachinesQueues(clustername, "queues", queue)
+func showQueues(clustername, queue string, of output.OutputFormater) {
+	showMachinesQueues(clustername, "queues", queue, of)
 }
 
-func showMachines(clustername, machine string) {
-	showMachinesQueues(clustername, "machines", machine)
+func showMachines(clustername, machine string, of output.OutputFormater) {
+	showMachinesQueues(clustername, "machines", machine, of)
 }
 
 func createRequestMachinesQueues(clusteraddress, req, filter string) string {
@@ -173,7 +175,7 @@ func createRequestMachinesQueues(clusteraddress, req, filter string) string {
 	return request
 }
 
-func getQueues(clusteraddress, filter string) ([]ubercluster.Queue, error) {
+func getQueues(clusteraddress, filter string) ([]types.Queue, error) {
 	resp, err := ubercluster.UberGet(*otp, createRequestMachinesQueues(clusteraddress, "queues", filter))
 	if err != nil {
 		fmt.Println(err)
@@ -182,7 +184,7 @@ func getQueues(clusteraddress, filter string) ([]ubercluster.Queue, error) {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
-	var queuelist []ubercluster.Queue
+	var queuelist []types.Queue
 	if err := decoder.Decode(&queuelist); err != nil {
 		fmt.Println("Error during decoding: ", err)
 		return nil, err
@@ -190,7 +192,7 @@ func getQueues(clusteraddress, filter string) ([]ubercluster.Queue, error) {
 	return queuelist, nil
 }
 
-func getMachines(clusteraddress, filter string) ([]ubercluster.Machine, error) {
+func getMachines(clusteraddress, filter string) ([]types.Machine, error) {
 	resp, err := ubercluster.UberGet(*otp, createRequestMachinesQueues(clusteraddress, "machines", filter))
 	if err != nil {
 		fmt.Println(err)
@@ -199,7 +201,7 @@ func getMachines(clusteraddress, filter string) ([]ubercluster.Machine, error) {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
-	var machinelist []ubercluster.Machine
+	var machinelist []types.Machine
 	if err := decoder.Decode(&machinelist); err != nil {
 		fmt.Println("Error during decoding: ", err)
 		return nil, err
@@ -207,12 +209,13 @@ func getMachines(clusteraddress, filter string) ([]ubercluster.Machine, error) {
 	return machinelist, nil
 }
 
-func showMachinesQueues(clusteraddress, req, filter string) {
+func showMachinesQueues(clusteraddress, req, filter string, of output.OutputFormater) {
 	log.Println("showMachineQueues: ", clusteraddress, req, filter)
 	if req == "machines" {
 		if machinelist, err := getMachines(clusteraddress, filter); err == nil {
 			for index, _ := range machinelist {
-				emulateQhost(machinelist[index])
+				//emulateQhost(machinelist[index])
+				of.PrintMachine(machinelist[index])
 			}
 		}
 	} else if req == "queues" {
@@ -220,6 +223,7 @@ func showMachinesQueues(clusteraddress, req, filter string) {
 			log.Println("Queuelist: ", queuelist)
 			for index, _ := range queuelist {
 				fmt.Println(queuelist[index].Name)
+				// TODO
 			}
 		}
 	}

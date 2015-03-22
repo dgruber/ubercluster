@@ -29,12 +29,24 @@ type JSONFormat struct {
 	output io.Writer // defines where to print
 }
 
-// PrintFiles writes information about each file in one
-// line in the configured output stream
-func (jf *JSONFormat) PrintFiles(fs []types.FileInfo) {
-	if out, err := json.Marshal(fs); err != nil {
+func (jf *JSONFormat) marshalJSON(data interface{}) {
+	if out, err := json.Marshal(data); err != nil {
 		log.Panic(err)
 	} else {
 		fmt.Fprintf(jf.output, "%s", string(out))
 	}
+}
+
+// PrintFiles writes information about each file in one
+// line in the configured output stream
+func (jf *JSONFormat) PrintFiles(fs []types.FileInfo) {
+	jf.marshalJSON(fs)
+}
+
+func (jf *JSONFormat) PrintJobDetails(ji types.JobInfo) {
+	jf.marshalJSON(ji)
+}
+
+func (jf *JSONFormat) PrintMachine(m types.Machine) {
+	jf.marshalJSON(m)
 }

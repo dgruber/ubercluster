@@ -35,7 +35,7 @@ var (
 	verbose   = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
 	cluster   = app.Flag("cluster", "Cluster name to interact with.").Default("default").String()
 	otp       = app.Flag("otp", "One time password (\"yubikey\") or shared secret.").Default("").String()
-	outformat = app.Flag("format", "Output format specifier.").Default("default").String()
+	outformat = app.Flag("format", "Output format specifier (default/json).").Default("default").String()
 
 	show               = app.Command("show", "Displays information about connected clusters.")
 	showJob            = show.Command("job", "Information about a particular job.")
@@ -121,16 +121,16 @@ func main() {
 	case showJob.FullCommand():
 		if showJobId != nil && *showJobId != "" {
 			log.Println("showJobId: ", *showJobId)
-			showJobDetails(clusteraddress, *showJobId)
+			showJobDetails(clusteraddress, *showJobId, of)
 		} else {
-			showJobs(clusteraddress, *showJobStateId, *showJobUser)
+			showJobs(clusteraddress, *showJobStateId, *showJobUser, of)
 		}
 	case cfgList.FullCommand():
 		listConfig(clusteraddress)
 	case showMachine.FullCommand():
-		showMachines(clusteraddress, *showMachineName)
+		showMachines(clusteraddress, *showMachineName, of)
 	case showQueue.FullCommand():
-		showQueues(clusteraddress, *showQueueName)
+		showQueues(clusteraddress, *showQueueName, of)
 	case showCategories.FullCommand():
 		showJobCategories(clusteraddress, "ubercluster", *showSessionName)
 	case showSession.FullCommand():

@@ -28,6 +28,8 @@ import (
 // to print out the results.
 type OutputFormater interface {
 	PrintFiles(fs []types.FileInfo) // output format of "uc ls"
+	PrintJobDetails(ji types.JobInfo)
+	PrintMachine(m types.Machine)
 }
 
 // MakeOutputFormater creates an output formater depending

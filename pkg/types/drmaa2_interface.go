@@ -1,4 +1,4 @@
-package ubercluster
+package types
 
 /* DRMAA2 types. Copied from github.com/dgruber/drmaa2.
    The DRMAA2 Go implementation is a cgo project which

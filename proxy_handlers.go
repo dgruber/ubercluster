@@ -29,34 +29,34 @@ import (
 	"strings"
 )
 
-func getDRMAA2JobState(state string) JobState {
+func getDRMAA2JobState(state string) types.JobState {
 	switch state {
 	case "r":
-		return Running
+		return types.Running
 	case "q":
-		return Queued
+		return types.Queued
 	case "h":
-		return QueuedHeld
+		return types.QueuedHeld
 	case "s":
-		return Suspended
+		return types.Suspended
 	case "R":
-		return Requeued
+		return types.Requeued
 	case "Rh":
-		return RequeuedHeld
+		return types.RequeuedHeld
 	case "d":
-		return Done
+		return types.Done
 	case "f":
-		return Failed
+		return types.Failed
 	case "u":
-		return Undetermined
+		return types.Undetermined
 	}
-	return Undetermined
+	return types.Undetermined
 }
 
 func MakeMSessionJobInfosHandler(impl ProxyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filterSet := false
-		var filter JobInfo
+		var filter types.JobInfo
 		if state := r.FormValue("state"); state != "all" && state != "" {
 			filter.State = getDRMAA2JobState(state)
 			log.Println("filter for state: ", filter.State)
@@ -200,7 +200,7 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 		if body, err := ioutil.ReadAll(r.Body); err != nil {
 			log.Println("(proxy)", err)
 		} else {
-			var jt JobTemplate
+			var jt types.JobTemplate
 			if uerr := json.Unmarshal(body, &jt); uerr != nil {
 				log.Println("(proxy) Unmarshall error")
 				http.Error(w, uerr.Error(), http.StatusInternalServerError)

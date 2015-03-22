@@ -16,7 +16,7 @@ type ProxyConfig struct {
 }
 
 func (c ProxyConfig) String() string {
-	return fmt.Sprintf("Verbose: %b\nAdress: %s\nCertFile: %s\nKeyFile: %s\nYubiID: %s\n",
+	return fmt.Sprintf("Verbose: %t\nAdress: %s\nCertFile: %s\nKeyFile: %s\nYubiID: %s\n",
 		c.Verbose, c.AddressPort, c.CertFile, c.KeyFile, c.YubiID)
 }
 

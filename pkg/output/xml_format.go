@@ -24,17 +24,29 @@ import (
 	"log"
 )
 
+func (xf *XMLFormat) marshalXML(data interface{}) {
+	if out, err := xml.Marshal(data); err != nil {
+		log.Panic(err)
+	} else {
+		fmt.Fprintf(xf.output, "%s", string(out))
+	}
+}
+
 // XMLFormat defines how information is published.
 type XMLFormat struct {
 	output io.Writer // defines where to print
 }
 
-// PrintFiles writes information about each file in one
-// line in the configured output stream
+// PrintFiles writes information about each file to output
+// encoded in plain XML format.
 func (xf *XMLFormat) PrintFiles(fs []types.FileInfo) {
-	if out, err := xml.Marshal(fs); err != nil {
-		log.Panic(err)
-	} else {
-		fmt.Fprintf(xf.output, "%s", string(out))
-	}
+	xf.marshalXML(fs)
+}
+
+func (xf *XMLFormat) PrintJobDetails(ji types.JobInfo) {
+	xf.marshalXML(ji)
+}
+
+func (xf *XMLFormat) PrintMachine(m types.Machine) {
+	xf.marshalXML(m)
 }
