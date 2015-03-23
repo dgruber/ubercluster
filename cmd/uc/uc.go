@@ -17,8 +17,8 @@
 package main
 
 import (
-	"github.com/dgruber/ubercluster"
 	"github.com/dgruber/ubercluster/pkg/output"
+	"github.com/dgruber/ubercluster/pkg/staging"
 	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
 	"log"
@@ -137,7 +137,7 @@ func main() {
 		showJobSessions(clusteraddress, *showSessionName)
 	case run.FullCommand():
 		if *fileUp != "" {
-			ubercluster.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
+			staging.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
 			if yubi {
 				*otp = getYubiKey() // we need another one time password for submission
 			}
@@ -150,11 +150,11 @@ func main() {
 	case resumeJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "resume", *resumeJobId)
 	case fsLs.FullCommand():
-		ubercluster.FsListFiles(*otp, clusteraddress, "ubercluster", of)
+		staging.FsListFiles(*otp, clusteraddress, "ubercluster", of)
 	case fsUp.FullCommand():
-		ubercluster.FsUploadFiles(*otp, clusteraddress, "ubercluster", *fsUpFiles, of)
+		staging.FsUploadFiles(*otp, clusteraddress, "ubercluster", *fsUpFiles, of)
 	case fsDown.FullCommand():
-		ubercluster.FsDownloadFiles(*otp, clusteraddress, "ubercluster", *fsDownFiles, of)
+		staging.FsDownloadFiles(*otp, clusteraddress, "ubercluster", *fsDownFiles, of)
 	case incpt.FullCommand():
 		inceptionMode(*incptPort)
 	}

@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-package ubercluster
+package http_helper
 
 import (
 	"fmt"

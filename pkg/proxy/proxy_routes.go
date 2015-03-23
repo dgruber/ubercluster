@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-package ubercluster
+package proxy
 
 import (
 	"fmt"
@@ -214,7 +214,7 @@ func NewProxyRouter(impl ProxyImplementer, sc SecConfig) *mux.Router {
 	return router
 }
 
-// Security related configuration settings for the ubercluster Proxy
+// SecConfig stores security related configuration settings for the ubercluster Proxy
 type SecConfig struct {
 	OTP        string // secret key or "yubikey"
 	YubiID     string // ID of yubiservice in case of yubikey https://upgrade.yubico.com/getapikey/

@@ -21,7 +21,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/proxy"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"log"
 	"strings"
@@ -211,8 +211,8 @@ func inceptionMode(address string) {
 	var incept inception
 	incept.config = config // configuration contains all connected clusters
 	fmt.Println("Starting uc in inception mode as proxy listening at address: ", address)
-	var sc ubercluster.SecConfig
+	var sc proxy.SecConfig
 	sc.OTP = *otp
 	// yubikey not supported since it would require interactivity
-	ubercluster.ProxyListenAndServe(address, "", "", sc, &incept)
+	proxy.ProxyListenAndServe(address, "", "", sc, &incept)
 }

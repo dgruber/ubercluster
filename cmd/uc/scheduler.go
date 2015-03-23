@@ -19,7 +19,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/http_helper"
 	"log"
 	"math"
 	"math/rand"
@@ -135,7 +135,7 @@ type loadValues struct {
 }
 
 func getClusterLoad(lv *loadValues, index int, request string) {
-	if resp, err := ubercluster.UberGet(*otp, request); err == nil {
+	if resp, err := http_helper.UberGet(*otp, request); err == nil {
 		defer resp.Body.Close()
 		decoder := json.NewDecoder(resp.Body)
 		var load float64

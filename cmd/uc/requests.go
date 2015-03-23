@@ -20,8 +20,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/http_helper"
 	"github.com/dgruber/ubercluster/pkg/output"
+	"github.com/dgruber/ubercluster/pkg/proxy"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
@@ -32,7 +33,7 @@ import (
 func getJob(clusteraddress, jobid string) (types.JobInfo, error) {
 	request := fmt.Sprintf("%s%s%s", clusteraddress, "/msession/jobinfo/", jobid)
 	log.Println("Requesting:" + request)
-	resp, err := ubercluster.UberGet(*otp, request)
+	resp, err := http_helper.UberGet(*otp, request)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -72,7 +73,7 @@ func getJobs(clusteraddress, state, user string) []types.JobInfo {
 		request = fmt.Sprintf("%s%s%s", request, "user=", user)
 	}
 	log.Println("Requesting:" + request)
-	resp, err := ubercluster.UberGet(*otp, request)
+	resp, err := http_helper.UberGet(*otp, request)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -135,13 +136,13 @@ func submitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, 
 	url := fmt.Sprintf("%s%s", clusteraddress, "/jsession/default/run")
 	log.Println("POST to URL:", url)
 	log.Println("Submit template: ", string(jtb))
-	if resp, err := ubercluster.UberPost(otp, url, "application/json",
+	if resp, err := http_helper.UberPost(otp, url, "application/json",
 		bytes.NewBuffer(jtb)); err != nil {
 		fmt.Println("Job submission error: ", err)
 	} else {
 		// fmt.Println("Job submitted successfully: ", resp.Status)
 		decoder := json.NewDecoder(resp.Body)
-		var answer ubercluster.RunJobResult
+		var answer proxy.RunJobResult
 		if err := decoder.Decode(&answer); err != nil {
 			fmt.Println("Error during decoding: ", err)
 		} else {
@@ -176,7 +177,7 @@ func createRequestMachinesQueues(clusteraddress, req, filter string) string {
 }
 
 func getQueues(clusteraddress, filter string) ([]types.Queue, error) {
-	resp, err := ubercluster.UberGet(*otp, createRequestMachinesQueues(clusteraddress, "queues", filter))
+	resp, err := http_helper.UberGet(*otp, createRequestMachinesQueues(clusteraddress, "queues", filter))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -193,7 +194,7 @@ func getQueues(clusteraddress, filter string) ([]types.Queue, error) {
 }
 
 func getMachines(clusteraddress, filter string) ([]types.Machine, error) {
-	resp, err := ubercluster.UberGet(*otp, createRequestMachinesQueues(clusteraddress, "machines", filter))
+	resp, err := http_helper.UberGet(*otp, createRequestMachinesQueues(clusteraddress, "machines", filter))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -236,7 +237,7 @@ func performOperation(clusteraddress, jsession, operation, jobId string) {
 	url := fmt.Sprintf("%s/jsession/%s/%s/%s", clusteraddress, jsession, operation, jobId)
 	log.Println("Requesting:" + url)
 	buffer := bytes.NewBuffer([]byte(""))
-	if resp, err := ubercluster.UberPost(*otp, url, "application/json", buffer); err != nil {
+	if resp, err := http_helper.UberPost(*otp, url, "application/json", buffer); err != nil {
 		fmt.Println("Error during post: ", err)
 	} else {
 		log.Println("Status of request:", resp.Status)
@@ -254,7 +255,7 @@ func getJobCategories(clusteraddress, jsession, category string) []string {
 		url = fmt.Sprintf("%s/jsession/%s/jobcategory/%s", clusteraddress, jsession, category)
 	}
 	log.Println("Requesting:" + url)
-	if resp, err := ubercluster.UberGet(*otp, url); err != nil {
+	if resp, err := http_helper.UberGet(*otp, url); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	} else {
@@ -281,7 +282,7 @@ func showJobCategories(clusteraddress, jsession, category string) {
 func getJobSessions(clusteraddress, jsession string) []string {
 	url := fmt.Sprintf("%s/jsessions", clusteraddress)
 	log.Println("Requesting:" + url)
-	if resp, err := ubercluster.UberGet(*otp, url); err != nil {
+	if resp, err := http_helper.UberGet(*otp, url); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	} else {

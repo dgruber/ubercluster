@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgruber/drmaa2"
-	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/proxy"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
@@ -246,15 +246,15 @@ func main() {
 	}
 
 	// Open MonitoringSession and create a JobSession with the given name
-	var proxy drmaa2proxy
-	proxy.initializeDRMAA2(JobSessionName)
-	defer proxy.js.Close()
-	defer proxy.ms.CloseMonitoringSession()
+	var p drmaa2proxy
+	p.initializeDRMAA2(JobSessionName)
+	defer p.js.Close()
+	defer p.ms.CloseMonitoringSession()
 
-	var sc ubercluster.SecConfig
+	var sc proxy.SecConfig
 	sc.OTP = *otp
 	sc.YubiID = *yubiID
 	sc.YubiSecret = *yubiSecret
 
-	ubercluster.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &proxy)
+	proxy.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &p)
 }

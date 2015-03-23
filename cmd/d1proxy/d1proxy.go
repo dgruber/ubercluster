@@ -22,7 +22,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgruber/drmaa"
-	"github.com/dgruber/ubercluster"
+	"github.com/dgruber/ubercluster/pkg/proxy"
+	"github.com/dgruber/ubercluster/pkg/types"
 	"gopkg.in/alecthomas/kingpin.v1"
 	"io/ioutil"
 	"log"
@@ -54,7 +55,7 @@ type drmaa1Proxy struct {
 
 // convertDRMAAJobTemplate transforms a DRMAA2 job template (from ubercluster package)
 // into a DRMAA1 job template which is used for executing the job
-func convertDRMAAJobTemplate(s drmaa.Session, jt ubercluster.JobTemplate) (*drmaa.JobTemplate, error) {
+func convertDRMAAJobTemplate(s drmaa.Session, jt types.JobTemplate) (*drmaa.JobTemplate, error) {
 	djt, err := s.AllocateJobTemplate()
 	if err != nil {
 		log.Println("Error during job template allocation: ", err)
@@ -75,156 +76,156 @@ func convertDRMAAJobTemplate(s drmaa.Session, jt ubercluster.JobTemplate) (*drma
 
 // RunJob runs a DRMAA job in the cluster. Is required in order to fulfill
 // the  ProxyImplementer interface.
-func (dp *drmaa1Proxy) RunJob(template ubercluster.JobTemplate) (string, error) {
+func (dp *drmaa1Proxy) RunJob(template types.JobTemplate) (jobid string, err error) {
 	// file path fix when the app is uploaded
 	localFile := template.WorkingDirectory + "/" + template.RemoteCommand
 	log.Println("Local file: ", localFile)
-	if fi, err := os.Stat(localFile); err == nil {
+	if fi, statErr := os.Stat(localFile); statErr == nil {
 		if fi.IsDir() == false {
 			// since we have a file in staging area we execute it :/
 			log.Println("Adding path to remote command")
 			template.RemoteCommand = localFile
 		}
 	}
-	if jt, err := convertDRMAAJobTemplate(dp.Session, template); err != nil {
-		log.Println("Error during job template conversion: ", err)
-		return "", err
+	if jt, convErr := convertDRMAAJobTemplate(dp.Session, template); convErr != nil {
+		log.Println("Error during job template conversion: ", convErr)
+		err = convErr
 	} else {
-		if jobid, err := dp.Session.RunJob(jt); err != nil {
-			return "", err
+		if id, runErr := dp.Session.RunJob(jt); err != nil {
+			err = runErr
 		} else {
-			return jobid, nil
+			jobid = id
 		}
 	}
-	// unreachable
-	return "NOOP", nil
+	return jobid, err
 }
 
 // JobOperation changes the state of a job in the system. Is required by the
 // ProxyImplementer interface.
-func (dp *drmaa1Proxy) JobOperation(jobsessionname, operation, jobid string) (string, error) {
+func (dp *drmaa1Proxy) JobOperation(jobsessionname, operation, jobid string) (out string, err error) {
 	// in DRMAA1 we irgnore the job session name since we don't have any
 	switch operation {
 	case "suspend":
-		if err := dp.Session.SuspendJob(jobid); err != nil {
-			return "", err
+		if opErr := dp.Session.SuspendJob(jobid); opErr != nil {
+			err = opErr
+		} else {
+			out = "Suspended Job"
 		}
-		return "Suspended job", nil
 	case "resume":
-		if err := dp.Session.ResumeJob(jobid); err != nil {
-			return "", err
+		if opErr := dp.Session.ResumeJob(jobid); opErr != nil {
+			err = opErr
+		} else {
+			out = "Resumed Job"
 		}
-		return "Resumed job", nil
 	case "terminate":
-		if err := dp.Session.TerminateJob(jobid); err != nil {
-			return "", err
+		if opErr := dp.Session.TerminateJob(jobid); opErr != nil {
+			err = opErr
+		} else {
+			out = "Terminated Job"
 		}
-		return "Terminated job", nil
 		// TODO adding hold and resume
 	default:
 		log.Println("JobOperation unknown operation ", operation)
-		return "", errors.New("Unknown operation: " + operation)
+		err = errors.New("Unknown operation: " + operation)
 	}
-	// unreachable - go ...
-	return "NOOP", nil
+	return out, err
 }
 
 // GetJobInfosByFilter is not available in DRMAA1. Is required by the
 // ProxyImplementer interface.
-func (dp *drmaa1Proxy) GetJobInfosByFilter(filtered bool, filter ubercluster.JobInfo) []ubercluster.JobInfo {
+func (dp *drmaa1Proxy) GetJobInfosByFilter(filtered bool, filter types.JobInfo) []types.JobInfo {
 	// filtering is not supported in DRMAA1
 	return nil
 }
 
 // convertDRMAAState converts a DRMAA state into a DRMAA2 state
-func convertDRMAAStateString(ds string) ubercluster.JobState {
+func convertDRMAAStateString(ds string) types.JobState {
 	switch ds {
 	case "Undetermined":
-		return ubercluster.Undetermined
+		return types.Undetermined
 	case "QueuedActive":
-		return ubercluster.Queued
+		return types.Queued
 	case "SystemHold":
-		return ubercluster.QueuedHeld
+		return types.QueuedHeld
 	case "UserHold":
-		return ubercluster.QueuedHeld
+		return types.QueuedHeld
 	case "UserSystemHold":
-		return ubercluster.QueuedHeld
+		return types.QueuedHeld
 	case "Running":
-		return ubercluster.Running
+		return types.Running
 	case "SystemSuspended":
-		return ubercluster.Suspended
+		return types.Suspended
 	case "UserSuspended":
-		return ubercluster.Suspended
+		return types.Suspended
 	case "UserSystemSuspended":
-		return ubercluster.Suspended
+		return types.Suspended
 	case "Done":
-		return ubercluster.Done
+		return types.Done
 	case "Failed":
-		return ubercluster.Failed
+		return types.Failed
 	}
-	return ubercluster.Undetermined
+	return types.Undetermined
 }
 
-func convertDRMAAState(ds drmaa.PsType) ubercluster.JobState {
+func convertDRMAAState(ds drmaa.PsType) types.JobState {
 	switch ds {
 	case drmaa.PsUndetermined:
-		return ubercluster.Undetermined
+		return types.Undetermined
 	case drmaa.PsQueuedActive:
-		return ubercluster.Queued
+		return types.Queued
 	case drmaa.PsSystemOnHold:
-		return ubercluster.QueuedHeld
+		return types.QueuedHeld
 	case drmaa.PsUserOnHold:
-		return ubercluster.QueuedHeld
+		return types.QueuedHeld
 	case drmaa.PsUserSystemOnHold:
-		return ubercluster.QueuedHeld
+		return types.QueuedHeld
 	case drmaa.PsRunning:
-		return ubercluster.Running
+		return types.Running
 	case drmaa.PsSystemSuspended:
-		return ubercluster.Suspended
+		return types.Suspended
 	case drmaa.PsUserSuspended:
-		return ubercluster.Suspended
+		return types.Suspended
 	case drmaa.PsUserSystemSuspended:
-		return ubercluster.Suspended
+		return types.Suspended
 	case drmaa.PsDone:
-		return ubercluster.Done
+		return types.Done
 	case drmaa.PsFailed:
-		return ubercluster.Failed
+		return types.Failed
 	}
-	return ubercluster.Undetermined
+	return types.Undetermined
 }
 
 // GetJobInfo returns information about a job. Probablamtic in
 // DRMAA1 since you have to wait for the job being finished.
-func (dp *drmaa1Proxy) GetJobInfo(jobid string) *ubercluster.JobInfo {
+func (dp *drmaa1Proxy) GetJobInfo(jobid string) *types.JobInfo {
 	// assume that jobid is PID
-	if state, err := dp.Session.JobPs(jobid); err != nil {
-		log.Println(err)
-		return nil
-	} else {
+	state, err := dp.Session.JobPs(jobid)
+	if err == nil {
 		// no more information availble in DRMAA1!
-		var ji ubercluster.JobInfo
+		var ji types.JobInfo
 		ji.State = convertDRMAAState(state)
 		ji.Id = jobid
 		// TODO plugin for vendors to make it more useful?
 		return &ji
+	} else {
+		log.Println(err)
 	}
-	// unreachable - go ...
 	return nil
 }
 
 // GetAllMachines is not available in DRMAA.
-func (dp *drmaa1Proxy) GetAllMachines(machines []string) ([]ubercluster.Machine, error) {
+func (dp *drmaa1Proxy) GetAllMachines(machines []string) ([]types.Machine, error) {
 	// no machines in DRMAA1 -> we need to call the DRM system
 	return nil, nil
 }
 
 // GetAllQueues is not really helpful since there is no notion of queues
 // in DRMAA1.
-func (dp *drmaa1Proxy) GetAllQueues(queues []string) ([]ubercluster.Queue, error) {
+func (dp *drmaa1Proxy) GetAllQueues(queues []string) ([]types.Queue, error) {
 	// no queues in DRMAA1
-	var q ubercluster.Queue
+	var q types.Queue
 	q.Name = "DRMAA"
-	return []ubercluster.Queue{q}, nil
+	return []types.Queue{q}, nil
 }
 
 // GetAllSessions just returns one session name since there is just one
@@ -290,9 +291,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	var sc ubercluster.SecConfig
+	var sc proxy.SecConfig
 	sc.OTP = *otp
 
-	ubercluster.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &d1)
+	proxy.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &d1)
 	defer d1.Session.Exit()
 }

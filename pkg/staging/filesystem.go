@@ -14,13 +14,14 @@
    limitations under the License.
 */
 
-package ubercluster
+package staging 
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/dgruber/ubercluster/pkg/http_helper"
 	"github.com/dgruber/ubercluster/pkg/output"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"io"
@@ -31,9 +32,9 @@ import (
 	"path/filepath"
 )
 
-// checkUploadFilesystem pre-checks the configured directory which
+// CheckUploadFilesystem pre-checks the configured directory which
 // is going to used for files staging during startup of the proxy
-func checkUploadFilesystem(dirname string) error {
+func CheckUploadFilesystem(dirname string) error {
 	// check if directory exists
 	if fi, err := os.Stat(dirname); err == nil {
 		if fi.IsDir() {
@@ -128,7 +129,7 @@ func FsUploadFile(otp, clusteraddress, jsName, filename string) {
 func getFiles(otp, clusteraddress, jsName string) ([]types.FileInfo, error) {
 	request := fmt.Sprintf("%s/jsession/%s/staging/files", clusteraddress, jsName)
 	log.Println("Requesting:" + request)
-	resp, err := UberGet(otp, request)
+	resp, err := http_helper.UberGet(otp, request)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)

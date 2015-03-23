@@ -14,11 +14,12 @@
    limitations under the License.
 */
 
-package ubercluster
+package proxy 
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dgruber/ubercluster/pkg/staging"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"github.com/gorilla/mux"
 	"io"
@@ -230,7 +231,7 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
 	stagingDir := "uploads"
 
-	if err := checkUploadFilesystem(stagingDir); err != nil {
+	if err := staging.CheckUploadFilesystem(stagingDir); err != nil {
 		fmt.Println(err)
 		os.Exit(2)
 	}
