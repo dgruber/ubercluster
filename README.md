@@ -243,5 +243,5 @@ Future improvements are planned:
 
 #### Other
 
-Watch the poor quality of this hobby project though Go Report Card which runs a few tests on it :-) http://goreportcard.com/report/dgruber/ubercluster
+Watch the quality of this project through [Go Report Card](http://goreportcard.com) which runs a few tests on it :-) http://goreportcard.com/report/dgruber/ubercluster
 
