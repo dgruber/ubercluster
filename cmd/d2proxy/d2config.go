@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ProxyConfig contains the current configuration for the proxy
+// which can come from command line or from configuration file.
 type ProxyConfig struct {
 	Verbose     bool
 	AddressPort string // like http://localhost:8888
@@ -29,11 +31,11 @@ func initializeD2Proxy() (*ProxyConfig, error) {
 	viper.AddConfigPath("./")
 	// use config only when there is a config file in local directory
 	if err := viper.ReadInConfig(); err == nil {
-		if err := viper.Marshal(&config); err != nil {
+		err = viper.Marshal(&config)
+		if err != nil {
 			return nil, err
-		} else {
-			return &config, nil
 		}
+		return &config, nil
 	}
 	return nil, nil
 }

@@ -30,7 +30,7 @@ import (
 	"os"
 )
 
-var verbose bool = false
+var verbose = false
 
 func init() {
 	if verbose == false {
@@ -207,9 +207,8 @@ func (dp *drmaa1Proxy) GetJobInfo(jobid string) *types.JobInfo {
 		ji.Id = jobid
 		// TODO plugin for vendors to make it more useful?
 		return &ji
-	} else {
-		log.Println(err)
 	}
+	log.Println(err)
 	return nil
 }
 
@@ -249,21 +248,22 @@ func (dp *drmaa1Proxy) DRMSVersion() string {
 	return dp.Session.GetDrmaaImplementation()
 }
 
-// DRMSName returns the name of the DRM (like Univa Grid Engine or Sun Grid Engine)
+// DRMSName returns the name of the DRM (like Univa Grid Engine or Sun Grid Engine).
 func (dp *drmaa1Proxy) DRMSName() string {
 	sys, _ := dp.Session.GetDrmSystem()
 	return sys
 }
 
-func (lp *drmaa1Proxy) DRMSLoad() float64 {
+// DRMSLoad returns the load of the DRMAA1 cluster.
+func (dp *drmaa1Proxy) DRMSLoad() float64 {
 	// TODO some ratio about pending / running jobs respecting the
 	// throughput
 	return 0.5
 }
 
-// InitDRMAA opens a DRMAA session which is going to be used
+// initDRMAA opens a DRMAA session which is going to be used
 // by the callbacks.
-func InitDRMAA() (drmaa1Proxy, error) {
+func initDRMAA() (drmaa1Proxy, error) {
 	var d1p drmaa1Proxy
 	s, err := drmaa.MakeSession()
 	if err != nil {
@@ -285,7 +285,7 @@ func main() {
 		log.SetOutput(os.Stdout)
 	}
 
-	d1, err := InitDRMAA()
+	d1, err := initDRMAA()
 	if err != nil {
 		fmt.Println("Error during initialization of DRMAA: ", err)
 		os.Exit(1)

@@ -5,10 +5,10 @@
 /*
 The d2proxy tool is a proxy server which serves compute cluster
 information data based on open DRMAA2 (see http://www.ogf.org)
-standard. The implementation is based on the library which comes 
+standard. The implementation is based on the library which comes
 with Univa Grid Engine.
 
-Usage (on Linux): 
+Usage (on Linux):
    - Be sure Univa Grid Engine (>= 8.2.0) is in path (i.e. "qstat" works)
    - Set the LD_LIBRARY_PATH to the C DRMAA2 library
    - Start the d2proy in background
@@ -21,4 +21,3 @@ Usage (on Linux):
 */
 
 package main
-
