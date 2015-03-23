@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-// The types package describes all types in ubercluster which are 
+// The types package describes all types in ubercluster which are
 // shared between different parts of the project.
 package types
-

@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// Job States
+// JobState determines the DRMAA2 state of a job.
 type JobState int
 
 const (
@@ -52,8 +52,10 @@ func (js JobState) String() string {
 	return "Unset"
 }
 
+// StructType is needed for extending the structs.
 type StructType int
 
+// TODO shouldn't they be StructTypes?
 const (
 	JobTemplateType = iota
 	JobInfoType
@@ -72,6 +74,7 @@ type Extension struct {
 	ExtensionList map[string]string // stores the extension requests as string
 }
 
+// JobInfo is an extensible struct which represents all data known by for the job.
 type JobInfo struct {
 	Extension         `xml:"-" json:"-"`
 	Id                string        `json:"id"`
@@ -92,6 +95,8 @@ type JobInfo struct {
 	FinishTime        time.Time     `json:"finishTime"`
 }
 
+// JobTemplate is an extensible struct which represents a template which
+// specifies the job for job submission.
 type JobTemplate struct {
 	Extension         `xml:"-" json:"-"`
 	RemoteCommand     string            `json:"remoteCommand"`
@@ -184,7 +189,7 @@ func (cpu CPU) String() string {
 	return "Unknown"
 }
 
-// Operating System type
+// OS is a type which represents an operating system.
 type OS int
 
 const (
@@ -233,6 +238,8 @@ func (os OS) String() string {
 	return "Unknown"
 }
 
+// Version represents a DRMAA2 version which contains a Major and a Minor
+// version.
 type Version struct {
 	Major string
 	Minor string
@@ -242,6 +249,8 @@ func (v *Version) String() string {
 	return fmt.Sprintf("%s.%s", v.Major, v.Minor)
 }
 
+// Machines is an extensible struct which contains all details known for a certain
+// machine in the cluster.
 type Machine struct {
 	Extension      `xml:"-" json:"-"`
 	Name           string  `json:"name"`
@@ -257,6 +266,8 @@ type Machine struct {
 	OS             OS      `json:"os"`
 }
 
+// Queue is an extensible struct which contains all information about
+// a queue in the DRM.
 type Queue struct {
 	Extension `xml:"-" json:"-"`
 	Name      string `xml:"name"`
