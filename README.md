@@ -240,3 +240,8 @@ Alternatively you can setup your own OTP validation server
 
 Future improvements are planned:
 - TLS support (the proxies already supports it).
+
+#### Other
+
+Watch the poor quality of this project though Go Report Card which runs a few tests on it :-) http://goreportcard.com/report/dgruber/ubercluster
+
