@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-package proxy 
+package proxy
 
 import (
 	"encoding/json"

@@ -74,7 +74,7 @@ func getJobInfosByFilter(ms *drmaa2.MonitoringSession, filter *drmaa2.JobInfo) [
 		log.Printf("amount of matching jobs %d\n", len(job))
 		if len(job) >= 1 {
 			ji := make([]drmaa2.JobInfo, 0, 500)
-			for i, _ := range job {
+			for i := range job {
 				jinfo, _ := job[i].GetJobInfo()
 				ji = append(ji, *jinfo)
 			}
@@ -125,7 +125,7 @@ func getJobInfoByState(ms *drmaa2.MonitoringSession, state string) []drmaa2.JobI
 		log.Printf("amount of matching jobs %d\n", len(job))
 		if len(job) >= 1 {
 			ji := make([]drmaa2.JobInfo, 0, 500)
-			for i, _ := range job {
+			for i := range job {
 				jinfo, _ := job[i].GetJobInfo()
 				ji = append(ji, *jinfo)
 			}

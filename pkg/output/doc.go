@@ -17,4 +17,3 @@
 // Package output contains the OutputFormater interface and implementations
 // for a various set of different output formats.
 package output
-

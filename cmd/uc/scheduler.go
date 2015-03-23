@@ -152,7 +152,7 @@ func getAllLoadValues(conf Config) []float64 {
 	var lv loadValues
 	lv.load = make([]float64, len(conf.Cluster), len(conf.Cluster))
 	lv.Add(len(conf.Cluster))
-	for i, _ := range conf.Cluster {
+	for i := range conf.Cluster {
 		addr := conf.Cluster[i].Address
 		ver := conf.Cluster[i].ProtocolVersion
 		go getClusterLoad(&lv, i, fmt.Sprintf("%s/%s/drmsload", addr, ver))

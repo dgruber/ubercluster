@@ -90,7 +90,7 @@ func getJobs(clusteraddress, state, user string) []types.JobInfo {
 
 func showJobs(clusteraddress, state, user string, of output.OutputFormater) {
 	joblist := getJobs(clusteraddress, state, user)
-	for index, _ := range joblist {
+	for index := range joblist {
 		of.PrintJobDetails(joblist[index])
 		fmt.Println()
 	}
@@ -214,7 +214,7 @@ func showMachinesQueues(clusteraddress, req, filter string, of output.OutputForm
 	log.Println("showMachineQueues: ", clusteraddress, req, filter)
 	if req == "machines" {
 		if machinelist, err := getMachines(clusteraddress, filter); err == nil {
-			for index, _ := range machinelist {
+			for index := range machinelist {
 				//emulateQhost(machinelist[index])
 				of.PrintMachine(machinelist[index])
 			}
@@ -222,7 +222,7 @@ func showMachinesQueues(clusteraddress, req, filter string, of output.OutputForm
 	} else if req == "queues" {
 		if queuelist, err := getQueues(clusteraddress, filter); err == nil {
 			log.Println("Queuelist: ", queuelist)
-			for index, _ := range queuelist {
+			for index := range queuelist {
 				fmt.Println(queuelist[index].Name)
 				// TODO
 			}
