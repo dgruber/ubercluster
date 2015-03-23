@@ -25,12 +25,14 @@ import (
 	"strconv"
 )
 
-// configuration for proxies of compute clusters which can be queried
+// Config contains configuration for proxies of compute clusters which can be queried.
 var config Config
 
-// global configuration parameters
+// GlobalConfig contains global configuration parameters.
 var globalConfig GlobalConfig
 
+// ClusterConfig contains all neccessary information ot access
+// one cluster which is represented by a proxy.
 type ClusterConfig struct {
 	// name to reference the cluster in this tool ("default" is
 	// the address used when no cluster is explicitly referenced
@@ -43,12 +45,15 @@ func (c ClusterConfig) String() string {
 	return fmt.Sprintf("Name: %s\nAddress: %s\nProtocolVersion: %s\n", c.Name, c.Address, c.ProtocolVersion)
 }
 
-// Complete configuration
+// Config contains the complete configuration for all clusters. The
+// configuration is intended to be read out from a config file.
 type Config struct {
 	// Multiple endpoints of proxies can be defined
 	Cluster []ClusterConfig
 }
 
+// GlobalConfig is the merged configuration containing the
+// configuration items needed in later function calls.
 type GlobalConfig struct {
 	OTP string
 }
@@ -106,7 +111,7 @@ func listConfig(clusteraddress string) {
 // in the configuration ("default" point to default cluster)
 func getClusterAddress(cluster string) (string, string) {
 	var clusteraddress string
-	for i, _ := range config.Cluster {
+	for i := range config.Cluster {
 		if cluster == config.Cluster[i].Name {
 			clusteraddress = config.Cluster[i].Address
 			clusteraddress = fmt.Sprintf("%s%s", clusteraddress, config.Cluster[i].ProtocolVersion)

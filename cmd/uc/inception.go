@@ -89,12 +89,13 @@ func getJobFromCluster(i *inception, clustername string, jobid string) (*types.J
 	if address != "" {
 		request := fmt.Sprintf("%s%s", address, version)
 		log.Println("GetJobFromCluster request", request)
-		if job, err := getJob(request, jobid); err == nil {
+		job, err := getJob(request, jobid)
+		if err == nil {
 			return &job, nil
-		} else {
-			log.Println("error during requesting job: ", err)
-			return nil, err
 		}
+		log.Println("error during requesting job: ", err)
+		return nil, err
+
 	}
 	return nil, errors.New("Couldn't find clustername in config: " + clustername)
 }
@@ -109,9 +110,8 @@ func (i *inception) GetJobInfo(jobid string) *types.JobInfo {
 		if len(jobAtCluster) == 2 {
 			job, _ := getJobFromCluster(i, jobAtCluster[1], jobAtCluster[0])
 			return job
-		} else {
-			log.Println("Wrong job identifier (expected jobid@cluster or jobid) but is ", jobid)
 		}
+		log.Println("Wrong job identifier (expected jobid@cluster or jobid) but is ", jobid)
 	} else {
 		// request default cluster for the given job identifier
 		job, _ := getJobFromCluster(i, "default", jobid)
