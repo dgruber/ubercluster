@@ -90,7 +90,7 @@ func (ps *ProbSched) SelectCluster() string {
 	// get load of each cluster
 	selection := probabilisticSelection(getAllLoadValues(ps.conf))
 	if selection >= 0 {
-		log.Println("Selected cluster %s due to probabilistic selection.",
+		log.Printf("Selected cluster %s due to probabilistic selection.\n",
 			ps.conf.Cluster[selection].Name)
 		return ps.conf.Cluster[selection].Name
 	}

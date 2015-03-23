@@ -66,7 +66,7 @@ func getJobInfo(ms *drmaa2.MonitoringSession, jobid string) *drmaa2.JobInfo {
 func getJobInfosByFilter(ms *drmaa2.MonitoringSession, filter *drmaa2.JobInfo) []drmaa2.JobInfo {
 	if job, err := ms.GetAllJobs(filter); err != nil || job == nil {
 		if err != nil {
-			fmt.Println("Error during GetAllJobs(): %s", err)
+			fmt.Printf("Error during GetAllJobs(): %s\n", err)
 		} else {
 			log.Println("No job in that state found!")
 		}
@@ -117,7 +117,7 @@ func getJobInfoByState(ms *drmaa2.MonitoringSession, state string) []drmaa2.JobI
 
 	if job, err := ms.GetAllJobs(filter); err != nil || job == nil {
 		if err != nil {
-			fmt.Println("Error during GetAllJobs(): %s", err)
+			fmt.Printf("Error during GetAllJobs(): %s\n", err)
 		} else {
 			log.Println("No job in that state found!")
 		}

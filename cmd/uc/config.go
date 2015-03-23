@@ -119,7 +119,7 @@ func getClusterAddress(cluster string) (string, string) {
 		}
 	}
 	if clusteraddress == "" {
-		fmt.Println("Cluster name %s not found in configuration.", cluster)
+		fmt.Printf("Cluster name %s not found in configuration.\n", cluster)
 		os.Exit(1)
 	}
 	log.Println("Chosen cluster: ", cluster, clusteraddress)
