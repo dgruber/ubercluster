@@ -21,6 +21,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/dgruber/ubercluster/pkg/persistency"
 	"github.com/dgruber/ubercluster/pkg/proxy"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"log"
@@ -213,6 +214,7 @@ func inceptionMode(address string) {
 	fmt.Println("Starting uc in inception mode as proxy listening at address: ", address)
 	var sc proxy.SecConfig
 	sc.OTP = *otp
+	var pi persistency.DummyPersistency
 	// yubikey not supported since it would require interactivity
-	proxy.ProxyListenAndServe(address, "", "", sc, &incept)
+	proxy.ProxyListenAndServe(address, "", "", sc, &pi, &incept)
 }

@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgruber/drmaa"
+	"github.com/dgruber/ubercluster/pkg/persistency"
 	"github.com/dgruber/ubercluster/pkg/proxy"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"gopkg.in/alecthomas/kingpin.v1"
@@ -293,7 +294,8 @@ func main() {
 
 	var sc proxy.SecConfig
 	sc.OTP = *otp
+	var ps persistency.DummyPersistency
 
-	proxy.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &d1)
+	proxy.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &ps, &d1)
 	defer d1.Session.Exit()
 }

@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgruber/drmaa2"
+	"github.com/dgruber/ubercluster/pkg/persistency"
 	"github.com/dgruber/ubercluster/pkg/proxy"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"gopkg.in/alecthomas/kingpin.v1"
@@ -38,14 +39,15 @@ func init() {
 }
 
 var (
-	app        = kingpin.New("d2proxy", "A proxy server for DRMAA2 compatible cluster schedulers (like Univa Grid Engine).")
-	cliVerbose = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
-	cliPort    = app.Flag("port", "Sets address and port on which proxy is listening.").Default(":8888").String()
-	certFile   = app.Flag("certFile", "Path to certification file for secure connections (TLS).").Default("").String()
-	keyFile    = app.Flag("keyFile", "Path to key file for secure connections (TLS).").Default("").String()
-	otp        = app.Flag("otp", "One time password settings (\"yubikey\") or a fixed shared secret.").Default("").String()
-	yubiID     = app.Flag("yubiID", "Yubi client ID if otp is set to yubikey.").Default("").String()
-	yubiSecret = app.Flag("yubiSecret", "Yubi secret key if otp is set to yubikey").Default("").String()
+	app            = kingpin.New("d2proxy", "A proxy server for DRMAA2 compatible cluster schedulers (like Univa Grid Engine).")
+	cliVerbose     = app.Flag("verbose", "Enables enhanced logging for debugging.").Bool()
+	cliPort        = app.Flag("port", "Sets address and port on which proxy is listening.").Default(":8888").String()
+	certFile       = app.Flag("certFile", "Path to certification file for secure connections (TLS).").Default("").String()
+	keyFile        = app.Flag("keyFile", "Path to key file for secure connections (TLS).").Default("").String()
+	otp            = app.Flag("otp", "One time password settings (\"yubikey\") or a fixed shared secret.").Default("").String()
+	yubiID         = app.Flag("yubiID", "Yubi client ID if otp is set to yubikey.").Default("").String()
+	yubiSecret     = app.Flag("yubiSecret", "Yubi secret key if otp is set to yubikey").Default("").String()
+	yubiAllowedIds = app.Flag("yubiAllowedIds", "A list of IDs of yubikeys which are accepted as source for OTPs.").Default("").Strings()
 )
 
 type drmaa2proxy struct {
@@ -215,7 +217,7 @@ func main() {
 		log.SetOutput(os.Stdout)
 	}
 
-	// read-in config
+	// read-in config from file
 	cfg, err := initializeD2Proxy()
 	if err != nil {
 		fmt.Println("Error during reading in config file: ", err)
@@ -243,6 +245,9 @@ func main() {
 		if *yubiSecret == "" {
 			*yubiSecret = cfg.YubiSecret
 		}
+		if *yubiAllowedIds == nil {
+			*yubiAllowedIds = cfg.YubiAllowedIds
+		}
 	}
 
 	// Open MonitoringSession and create a JobSession with the given name
@@ -255,6 +260,9 @@ func main() {
 	sc.OTP = *otp
 	sc.YubiID = *yubiID
 	sc.YubiSecret = *yubiSecret
+	sc.YubiAllowedIDs = *yubiAllowedIds
 
-	proxy.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &p)
+	var pi persistency.DummyPersistency
+
+	proxy.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &pi, &p)
 }

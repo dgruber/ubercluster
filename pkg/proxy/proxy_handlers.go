@@ -19,6 +19,7 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dgruber/ubercluster/pkg/persistency"
 	"github.com/dgruber/ubercluster/pkg/staging"
 	"github.com/dgruber/ubercluster/pkg/types"
 	"github.com/gorilla/mux"
@@ -54,97 +55,116 @@ func getDRMAA2JobState(state string) types.JobState {
 	return types.Undetermined
 }
 
-func MakeMSessionJobInfosHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeMSessionJobInfosHandler retuns an http handler function which returns
+// a JSON encoded collection of DRMAA2 job info object of all jobs available.
+func MakeMSessionJobInfosHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filterSet := false
 		var filter types.JobInfo
 		if state := r.FormValue("state"); state != "all" && state != "" {
 			filter.State = getDRMAA2JobState(state)
-			log.Println("filter for state: ", filter.State)
+			log.Printf("filter for state: %s\n", filter.State)
 			filterSet = true
 		}
 		if user := r.FormValue("user"); user != "" {
 			filter.JobOwner = user
-			log.Println("filter for user: ", filter.JobOwner)
+			log.Printf("filter for user: %s\n", filter.JobOwner)
 			filterSet = true
 		}
 		if jobinfos := impl.GetJobInfosByFilter(filterSet, filter); jobinfos != nil {
 			encoder := json.NewEncoder(w)
 			if err := encoder.Encode(jobinfos); err != nil {
-				fmt.Println("Encoding error: ", err)
+				fmt.Printf("Encoding error: %s\n", err)
 			} else {
-				log.Println("Encoded: ", jobinfos)
+				log.Printf("Encoded: %s\n", jobinfos)
 			}
 		}
 	}
 }
 
-func MakeMSessionJobInfoHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeMSessionJobInfoHandler returns an http handler function which returns
+// a JSON encoded DRMAA2 Job Info object.
+func MakeMSessionJobInfoHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		if jobid := vars["jobid"]; jobid != "" {
 			if jobinfo := impl.GetJobInfo(jobid); jobinfo != nil {
 				json.NewEncoder(w).Encode(*jobinfo)
+			} else {
+				log.Printf("JobInfo not found for job %s\n", jobinfo)
 			}
 		}
 	}
 }
 
-func MakeMachinesHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeMachinesHandler returns an http handler function which returns
+// a JSON encoded collection of all machines availale in the DRM.
+func MakeMachinesHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if machines, err := impl.GetAllMachines(nil); err == nil {
 			json.NewEncoder(w).Encode(machines)
 		} else {
-			log.Println("Error in GetAllMachines: ", err)
+			log.Printf("Error in GetAllMachines: %s\n", err)
 		}
 	}
 }
 
-func MakeMachineHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeMachineHandler retuns an http handler function which returns
+// a JSON encoded DRMAA2 machine object if the machine is part of the
+// DRM system.
+func MakeMachineHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		name := vars["name"]
 		if machines, err := impl.GetAllMachines([]string{name}); err == nil {
 			json.NewEncoder(w).Encode(machines)
 		} else {
-			log.Println("Error in GetAllMachines: ", err)
+			log.Printf("Error in GetAllMachines: %s\n", err)
 		}
 	}
 }
 
-func MakeQueuesHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeQueuesHandler retuns an http handler function which returns
+// all available queues in the DRM system JSON encoded.
+func MakeQueuesHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if queues, err := impl.GetAllQueues(nil); err == nil {
 			json.NewEncoder(w).Encode(queues)
 		} else {
-			log.Println("Error in GetAllQueues: ", err)
+			log.Printf("Error in GetAllQueues: %s\n", err)
 		}
 	}
 }
 
-func MakeQueueHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeQueueHandler returns an http handler function which returns
+// the requested queue if it is available on the system JSON encoded.
+func MakeQueueHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		name := vars["name"]
 		if queues, err := impl.GetAllQueues([]string{name}); err == nil {
 			json.NewEncoder(w).Encode(queues)
 		} else {
-			log.Println("Error in GetAllQueues: ", err)
+			log.Printf("Error in GetAllQueues: %s\n", err)
 		}
 	}
 }
 
-func MakeJSessionCategoriesHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeMSessionDRMSVersionHandler returns an http handler function which
+// returns all available DRMAA2 job categories as JSON encoded string.
+func MakeJSessionCategoriesHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if categories, err := impl.GetAllCategories(); err == nil {
 			json.NewEncoder(w).Encode(categories)
 		} else {
-			log.Println("Error in GetAllCategoires: ", err)
+			log.Printf("Error in GetAllCategories: %s\n", err)
 		}
 	}
 }
 
-func MakeJSessionCategoryHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeJSessionCategroyHandler returns an http handler function which
+// returns a requested job category when it is available.
+func MakeJSessionCategoryHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	// at the moment all job sessions have the same categories
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -157,24 +177,30 @@ func MakeJSessionCategoryHandler(impl ProxyImplementer) http.HandlerFunc {
 				}
 			}
 		} else {
-			log.Println("Error in GetJobCategories: ", err)
+			log.Printf("Error in GetJobCategories: %s\n", err)
 		}
 	}
 }
 
-func MakeMSessionDRMSNameHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeMSessionDRMSNameHandler returns an http handler function which
+// returns the DRMS name encoded by the ProxyImplementer as JSON string.
+func MakeMSessionDRMSNameHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(impl.DRMSName())
 	}
 }
 
-func MakeMSessionDRMSVersionHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeMSessionDRMSVersionHandler returns an http handler function which
+// returns the DRMS name encoded by the ProxyImplementer as JSON string.
+func MakeMSessionDRMSVersionHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(impl.DRMSVersion())
 	}
 }
 
-func MakeMSessionDRMSLoadHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeMSessionDRMSLoadHandler returns an http handler function which
+// returns the DRMS encoded load by the ProxyImplementer as JSON string.
+func MakeMSessionDRMSLoadHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(impl.DRMSLoad())
 	}
@@ -186,8 +212,13 @@ type RunJobResult struct {
 	JobId string `json:"jobid"`
 }
 
-// Reads in JSON for DRMAA2 job template struct.
-func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeJSessionSubmitHandler returns an http handler function which
+// reads in a DRMAA2 job template struct (in JSON) in the body of the
+// http request. In case of success the job is submitted in the cluster
+// using the RunJob function implemented by the proxy.
+// TODO In case a ProxyImplementer is given as a parameter the job template
+// is made persistent.
+func MakeJSessionSubmitHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	var workingDir string
 	if wd, wdErr := os.Getwd(); wdErr == nil {
 		log.Println("(proxy) adapt cwd to ", wd, "uploads")
@@ -199,26 +230,34 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if body, err := ioutil.ReadAll(r.Body); err != nil {
-			log.Println("(proxy)", err)
+			log.Printf("(proxy) %s\n", err)
 		} else {
 			var jt types.JobTemplate
 			if uerr := json.Unmarshal(body, &jt); uerr != nil {
 				log.Println("(proxy) Unmarshall error")
 				http.Error(w, uerr.Error(), http.StatusInternalServerError)
 			} else {
-				log.Println("(proxy) Set working dir for job ", workingDir)
+				log.Printf("(proxy) Set working dir for job %s\n", workingDir)
 				jt.WorkingDirectory = workingDir
 				// required when file is in staging area but not for general path
 				// jt.RemoteCommand = workingDir + "/" + jt.RemoteCommand
 				log.Println("(proxy) Submit now job")
 				// Submit job in compute cluster
 				if jobid, joberr := impl.RunJob(jt); joberr != nil {
-					log.Println("(proxy) Error during job submission: ", joberr)
+					log.Printf("(proxy) Error during job submission: %s\n", joberr)
 					http.Error(w, joberr.Error(), http.StatusInternalServerError)
-
 				} else {
-					log.Println("(proxy) Job successfully submitted: ", jobid)
-					// TODO return cluster name
+					log.Printf("(proxy) Job successfully submitted: %s\n", jobid)
+
+					// make job submission persistent on proxy
+					if pi != nil {
+						if err := pi.SaveJobTemplate(jobid, jt); err != nil {
+							log.Printf("(proxy) Error during making Job Template persistent: %s\n", err)
+						} else {
+							log.Printf("(proxy) Job template for job %s successfully made persistent.\n", jobid)
+						}
+					}
+
 					var result RunJobResult
 					result.JobId = jobid
 					json.NewEncoder(w).Encode(result)
@@ -228,7 +267,7 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer) http.HandlerFunc {
 	}
 }
 
-func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
+func MakeUCFileUploadHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	stagingDir := "uploads"
 
 	if err := staging.CheckUploadFilesystem(stagingDir); err != nil {
@@ -292,7 +331,9 @@ func MakeUCFileUploadHandler(impl ProxyImplementer) http.HandlerFunc {
 	}
 }
 
-func MakeJSessionJobManipulationHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeJSessionJobManipulationHandler returns an http handler function which
+// calls the JobOperation function defined by an ProxyImplementer.
+func MakeJSessionJobManipulationHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		name := vars["jsname"]
@@ -313,9 +354,9 @@ func MakeJSessionJobManipulationHandler(impl ProxyImplementer) http.HandlerFunc 
 	}
 }
 
-// MakeUCListFilesHandler creates an http handler which serves
-// a list of files in the staging area of the proxy
-func MakeListFilesHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeListFilesHandler creates an http handler function which returns
+// a list of all files in the staging area over http.
+func MakeListFilesHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	// TODO disallow based on config / startup params ...
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("(ListFilesHandler) called")
@@ -364,7 +405,11 @@ func MakeListFilesHandler(impl ProxyImplementer) http.HandlerFunc {
 	}
 }
 
-func MakeDownloadFilesHandler(impl ProxyImplementer) http.HandlerFunc {
+// MakeDownloadFilesHandler returns an http handler function which
+// serves a file requested with the *name* http request.
+func MakeDownloadFilesHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
+	// TODO uploads directory should be defined by the proxy implementer
+	// or depend from the job session.
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		if filename := vars["name"]; filename != "" {
@@ -378,7 +423,7 @@ func MakeDownloadFilesHandler(impl ProxyImplementer) http.HandlerFunc {
 
 // MakeSessionListHandler implements an http handler which serves
 // a list of (DRMAA2) job sessions available on this proxy.
-func MakeSessionListHandler(impl ProxyImplementer) http.HandlerFunc {
+func MakeSessionListHandler(impl ProxyImplementer, pi persistency.PersistencyImplementer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if sessions, err := impl.GetAllSessions(nil); err == nil {
 			json.NewEncoder(w).Encode(sessions)
