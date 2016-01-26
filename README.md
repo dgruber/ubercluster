@@ -2,7 +2,7 @@ ubercluster
 ===========
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/dgruber/ubercluster)
 [![Apache V2 License](http://img.shields.io/badge/license-Apache%20V2-blue.svg)](https://raw.githubusercontent.com/dgruber/ubercluster/master/LICENSE)
-
+[![Go Report Card](http://goreportcard.com/badge/dgruber/ubercluster)](http://goreportcard.com/report/dgruber/ubercluster)
 
 Simple multi-clustering tool based on an open standard for job submission and cluster monitoring ([DRMAA2](http://www.drmaa.org)). Works on top of supported cluster schedulers, like **Univa Grid Engine**.
 
