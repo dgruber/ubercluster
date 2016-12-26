@@ -30,7 +30,7 @@ Go to ```cmd/d2proxy```
 
 Go to ```cmd/uc```
 
-    $ godep go install
+    $ go install
 
 ## Example usage
 
