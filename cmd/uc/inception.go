@@ -129,7 +129,11 @@ func (i *inception) GetAllMachines(machines []string) ([]types.Machine, error) {
 		if addr := fmt.Sprintf("%s/", c.Address); addr == i.inceptionAddress {
 			continue
 		}
-		address, _ := getClusterAddress(c.Name)
+		address, _, err := GetClusterAddress(c.Name)
+		if err != nil {
+			log.Panicln(err.Error())
+			return nil, err
+		}
 		if ms, err := getMachines(address, "all"); err == nil {
 			allmachines = append(allmachines, ms...)
 			log.Println("Appending: ", allmachines)
@@ -153,7 +157,11 @@ func (i *inception) GetAllQueues(queues []string) ([]types.Queue, error) {
 		if addr := fmt.Sprintf("%s/", c.Address); addr == i.inceptionAddress {
 			continue
 		}
-		address, _ := getClusterAddress(c.Name)
+		address, _, err := GetClusterAddress(c.Name)
+		if err != nil {
+			log.Panicln(err.Error())
+			return nil, err
+		}
 		if qs, err := getQueues(address, "all"); err == nil {
 			allqueues = append(allqueues, qs...)
 			log.Println("Appending: ", allqueues)
@@ -181,7 +189,11 @@ func (i *inception) GetAllCategories() ([]string, error) {
 			log.Println("Skipping own address")
 			continue
 		}
-		address, _ := getClusterAddress(c.Name)
+		address, _, err := GetClusterAddress(c.Name)
+		if err != nil {
+			log.Panicln(err.Error())
+			return nil, err
+		}
 		cat = append(cat, getJobCategories(address, "ubercluster", "all")...)
 	}
 	return cat, nil

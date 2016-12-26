@@ -18,6 +18,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/spf13/viper"
 	"log"
@@ -82,7 +83,7 @@ func saveDummyConfig() {
 	}
 }
 
-func readConfig() {
+func ReadConfig() Config {
 	viper.SetConfigName("config")
 	// check local directory first
 	viper.AddConfigPath("./")
@@ -92,13 +93,15 @@ func readConfig() {
 	viper.AddConfigPath("/etc/ubercluster/")
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Error reading in config file. ", err)
+		fmt.Printf("Error reading in config file: %s\n", err)
 		os.Exit(1)
 	}
-	if err := viper.Marshal(&config); err != nil {
-		fmt.Println("Error when decoding config file. ", err)
+
+	if err := viper.Unmarshal(&config); err != nil {
+		fmt.Printf("Internal error parsing config file: %s\n", err)
 		os.Exit(1)
 	}
+	return config
 }
 
 func listConfig(clusteraddress string) {
@@ -107,9 +110,9 @@ func listConfig(clusteraddress string) {
 	}
 }
 
-// setClusterAddress searches the address of the cluster to contact to
+// GetClusterAddress searches the address of the cluster to contact to
 // in the configuration ("default" point to default cluster)
-func getClusterAddress(cluster string) (string, string) {
+func GetClusterAddress(cluster string) (string, string, error) {
 	var clusteraddress string
 	for i := range config.Cluster {
 		if cluster == config.Cluster[i].Name {
@@ -119,11 +122,12 @@ func getClusterAddress(cluster string) (string, string) {
 		}
 	}
 	if clusteraddress == "" {
-		fmt.Printf("Cluster name %s not found in configuration.\n", cluster)
-		os.Exit(1)
+		text := fmt.Sprintf("Cluster %s not found in configuration", cluster)
+		fmt.Printf("%s\n", text)
+		return "", "", errors.New(text)
 	}
 	log.Println("Chosen cluster: ", cluster, clusteraddress)
-	return clusteraddress, cluster
+	return clusteraddress, cluster, nil
 }
 
 // makeTestConfig creates a configuration for testing
@@ -138,19 +142,19 @@ func makeTestConfig(amount int) Config {
 	return conf
 }
 
-func selectClusterAddress(cluster, alg string) (string, string) {
+func selectClusterAddress(cluster, alg string) (string, string, error) {
 	// a cluster selection algorithm chooses the right cluster
 	switch alg {
 	case "rand": // random scheduling
-		return getClusterAddress(MakeNewScheduler(RandomSchedulerType, config).Impl.SelectCluster())
+		return GetClusterAddress(MakeNewScheduler(RandomSchedulerType, config).Impl.SelectCluster())
 	case "prob": // probabilistic scheduling
-		return getClusterAddress(MakeNewScheduler(ProbabilisticSchedulerType, config).Impl.SelectCluster())
+		return GetClusterAddress(MakeNewScheduler(ProbabilisticSchedulerType, config).Impl.SelectCluster())
 	case "load": // load based scheduling
-		return getClusterAddress(MakeNewScheduler(LoadBasedSchedulerType, config).Impl.SelectCluster())
+		return GetClusterAddress(MakeNewScheduler(LoadBasedSchedulerType, config).Impl.SelectCluster())
 	}
 	if alg != "" {
 		fmt.Println("Unkown scheduler selection algorithm: ", alg)
 		os.Exit(2)
 	}
-	return getClusterAddress(cluster)
+	return GetClusterAddress(cluster)
 }

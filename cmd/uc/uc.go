@@ -17,6 +17,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/dgruber/ubercluster/pkg/output"
 	"github.com/dgruber/ubercluster/pkg/staging"
 	"gopkg.in/alecthomas/kingpin.v1"
@@ -96,14 +97,16 @@ func main() {
 	if *verbose {
 		log.SetOutput(os.Stdout)
 	}
-	// save an config example
-	saveDummyConfig()
 	// read in configuration
-	readConfig()
+	ReadConfig()
 
 	// based on cluster name or selection algorithm
 	// create the address to send requests
-	clusteraddress, clustername := selectClusterAddress(*cluster, *alg)
+	clusteraddress, clustername, err := selectClusterAddress(*cluster, *alg)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 
 	// output can be produced in different formats
 	of := output.MakeOutputFormater(*outformat)
