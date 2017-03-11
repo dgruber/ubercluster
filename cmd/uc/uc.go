@@ -92,11 +92,17 @@ var (
 )
 
 func main() {
-	p := kingpin.MustParse(app.Parse(os.Args[1:]))
+	arguments := os.Args[1:]
+	if len(arguments) == 0 {
+		arguments = append(arguments, "--help")
+	}
+
+	p := kingpin.MustParse(app.Parse(arguments))
 
 	if *verbose {
 		log.SetOutput(os.Stdout)
 	}
+
 	// read in configuration
 	ReadConfig()
 
@@ -135,7 +141,7 @@ func main() {
 	case showQueue.FullCommand():
 		showQueues(clusteraddress, *showQueueName, of)
 	case showCategories.FullCommand():
-		showJobCategories(clusteraddress, "ubercluster", *showSessionName)
+		showJobCategories(clusteraddress, "ubercluster", *showCategoriesName)
 	case showSession.FullCommand():
 		showJobSessions(clusteraddress, *showSessionName)
 	case run.FullCommand():

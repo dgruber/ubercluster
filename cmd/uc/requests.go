@@ -249,7 +249,7 @@ func performOperation(clusteraddress, jsession, operation, jobId string) {
 
 func getJobCategories(clusteraddress, jsession, category string) []string {
 	var url string
-	if category == "all" {
+	if category == "all" || category == "" {
 		url = fmt.Sprintf("%s/jsession/%s/jobcategories", clusteraddress, jsession)
 	} else {
 		url = fmt.Sprintf("%s/jsession/%s/jobcategory/%s", clusteraddress, jsession, category)
@@ -260,7 +260,7 @@ func getJobCategories(clusteraddress, jsession, category string) []string {
 		os.Exit(1)
 	} else {
 		defer resp.Body.Close()
-		if category == "all" {
+		if category == "all" || category == "" {
 			var catList []string
 			json.NewDecoder(resp.Body).Decode(&catList)
 			return catList
