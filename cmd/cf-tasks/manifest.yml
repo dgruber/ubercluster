@@ -1,0 +1,10 @@
+---
+applications:
+  - name: cf-tasks
+    command: cf-tasks --otp=mysupersecretpassword
+    env:
+      GOVERSION: go1.8
+      GOPACKAGENAME: github.com/dgruber/uc/proxy/cf-tasks
+      CF_TARGET: https://api.run.pivotal.io
+      NAME: user@xyz.io
+      PASSWORD: password

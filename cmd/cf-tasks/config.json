@@ -1,0 +1,2 @@
+{"Cluster":[{"Name":"default","Address":"http://cf-tasks.cfapps.io:80/","ProtocolVersion":"v1"},
+{"Name":"linux","Address":"http://cf-tasks.cfapps.haas-35.pez.pivotal.io:80/","ProtocolVersion":"v1"}]}
