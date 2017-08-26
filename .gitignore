@@ -13,5 +13,7 @@
 coverage.out
 test
 
+/uploads
+
 # uc configuration settings
 config.json
