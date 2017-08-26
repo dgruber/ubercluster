@@ -2,11 +2,19 @@ language: go
 
 go:
   - 1.7
-  - tip
+  - 1.8
+  - 1.9
+  - master 
   
 install: 
   - go get github.com/tools/godep
   - cd ./cmd/uc/
+  - go install
+  - cd ../..
+  - cd ./cmd/dockerproxy
+  - go install
+  - cd ../..
+  - cd ./cmd/cf-tasks
   - go install
   - cd ../..
 

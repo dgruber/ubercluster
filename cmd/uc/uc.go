@@ -54,12 +54,16 @@ var (
 
 	run         = app.Command("run", "Submits an application to a cluster.")
 	runCommand  = run.Arg("command", "Command to submit.").Required().String()
-	runArg      = run.Flag("arg", "Argument of the command.").Default("").String()
+	runArg      = run.Flag("arg", "Argument of the command (use \" when having spaces).").Default("").String()
 	runName     = run.Flag("name", "Reference name of the command.").Default("").String()
 	runQueue    = run.Flag("queue", "Queue name for the job.").Default("").String()
 	runCategory = run.Flag("category", "Job category / job class of the job.").Default("").String()
 	alg         = run.Flag("alg", "Automatic cluster selection when submitting jobs (\"rand\", \"prob\", \"load\")").Default("").String()
 	fileUp      = run.Flag("upload", "Path to job which is uploaded before execution.").Default("").String()
+
+	runlocal        = app.Command("runlocal", "Runs a command as child of the proxy.")
+	runlocalCommand = runlocal.Arg("command", "Command to run.").Required().String()
+	runlocalArg     = runlocal.Flag("arg", "Argument of the command (use \" when having spaces.)").Default("").String()
 
 	// operations on job
 	terminate      = app.Command("terminate", "Terminate operation.")
@@ -152,6 +156,8 @@ func main() {
 			}
 		}
 		submitJob(clusteraddress, clustername, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
+	case runlocal.FullCommand():
+		runLocalRequest(*otp, clusteraddress, *runlocalCommand, *runlocalArg)
 	case terminateJob.FullCommand():
 		performOperation(clusteraddress, "ubercluster", "terminate", *terminateJobId)
 	case suspendJob.FullCommand():

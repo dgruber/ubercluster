@@ -117,38 +117,75 @@ func getYubiKey() string {
 	return ""
 }
 
-// submitJob creates a new job in the given cluster
-func submitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, otp string) {
-	var jt types.JobTemplate
-	// fill a DRMAA2 job template and send it over to the proxy
-	jt.RemoteCommand = cmd
-	jt.JobName = jobname
+func runLocalRequest(otp, clusteraddress, cmd, arg string) {
+	url := fmt.Sprintf("%s%s", clusteraddress, "/local/run")
+	log.Println("POST to URL:", url)
+	rlr := types.RunLocalRequest{
+		Command: cmd,
+		Arg:     arg,
+	}
+	body, _ := json.Marshal(rlr)
+	resp, err := http_helper.UberPost(otp, url, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		fmt.Println("Run local error: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	var answer string
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error during reading answer from proxy: %s\n", err.Error())
+		return
+	}
+	json.Unmarshal(respBody, &answer)
+	fmt.Printf("%s\n", answer)
+}
+
+func createJobRequest(jobname, cmd, arg, queue, category string) []byte {
+	jt := types.JobTemplate{
+		RemoteCommand: cmd,
+		JobName:       jobname,
+		QueueName:     queue,
+		JobCategory:   category,
+	}
 	if arg != "" {
 		jt.Args = []string{arg}
 	}
-	jt.QueueName = queue
-	if category != "" {
-		jt.JobCategory = category
-	}
 	jtb, _ := json.Marshal(jt)
+	return jtb
+}
+
+// submitJob creates a new job in the given cluster
+func submitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, otp string) {
+	jtb := createJobRequest(jobname, cmd, arg, queue, category)
 
 	// create URL of cluster to send the job to
 	url := fmt.Sprintf("%s%s", clusteraddress, "/jsession/default/run")
 	log.Println("POST to URL:", url)
 	log.Println("Submit template: ", string(jtb))
-	if resp, err := http_helper.UberPost(otp, url, "application/json",
-		bytes.NewBuffer(jtb)); err != nil {
-		fmt.Println("Job submission error: ", err)
+
+	resp, err := http_helper.UberPost(otp, url, "application/json", bytes.NewBuffer(jtb))
+	if err != nil {
+		fmt.Printf("Job submission error: %s\n", err.Error())
+		return
+	}
+	defer resp.Body.Close()
+
+	// fmt.Println("Job submitted successfully: ", resp.Status)
+	var answer proxy.RunJobResult
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error during reading answer from proxy: %s\n", err.Error())
+		return
+	}
+
+	err = json.Unmarshal(body, &answer)
+	if err != nil {
+		fmt.Printf("Error during decoding answer from POSTING to proxy during job submission: %s\n", string(body))
 	} else {
-		// fmt.Println("Job submitted successfully: ", resp.Status)
-		decoder := json.NewDecoder(resp.Body)
-		var answer proxy.RunJobResult
-		if err := decoder.Decode(&answer); err != nil {
-			fmt.Println("Error during decoding: ", err)
-		} else {
-			fmt.Println("Jobid: ", answer.JobId)
-			fmt.Println("Cluster: ", clustername)
-		}
+		fmt.Println("Jobid: ", answer.JobId)
+		fmt.Println("Cluster: ", clustername)
 	}
 }
 

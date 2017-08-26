@@ -4,17 +4,19 @@ ubercluster
 [![Apache V2 License](http://img.shields.io/badge/license-Apache%20V2-blue.svg)](https://raw.githubusercontent.com/dgruber/ubercluster/master/LICENSE)
 [![Go Report Card](http://goreportcard.com/badge/dgruber/ubercluster)](http://goreportcard.com/report/dgruber/ubercluster)
 
-Simple multi-clustering tool based on an open standard for job submission and cluster monitoring ([DRMAA2](http://www.drmaa.org)). Works on top of supported cluster schedulers, like **Univa Grid Engine**.
+Simple multi-clustering tool based on an open standard for job submission and cluster monitoring ([DRMAA2](http://www.drmaa.org)). Works on top of supported cluster schedulers, like Univa Grid Engine but also
+for Cloud Foundry tasks or local Docker containers.
 
 It consists of following components:
 - **uc** [![Build Status](https://travis-ci.org/dgruber/ubercluster.svg)](https://travis-ci.org/dgruber/ubercluster): Main command line tool to interact with the compute clusters (show status / start jobs). Pure Go - can run everywhere where you can compile Go (MacOS / Linux / Windows / ...). Communicates with proxies. 
 - **d2proxy**: Proxy which runs on a submit host of a compute cluster (Grid Engine cluster). Based on Go DRMAA2 (which is based on the DRMAA2 C API).
 - **d1proxy**: Example proxy for DRMAA (version 1) compatible clusters. Does not support most concepts but job submission works. Good starting point if you want to create your own proxy (which is btw. extremely easy).
 - **cf-tasks**: Example of a proxy which emits Cloud Foundry tasks as jobs.
+- **dockerproxy**: Example of a proxy which runs Docker containers as jobs.
 
 ![uc image](https://raw.githubusercontent.com/dgruber/ubercluster/master/img/uc.png)
 
-## Compilation
+## Compilation of DRMAA2 Proxy
 
 Make sure you have a cluster scheduler supporting DRMAA2 C API (like Univa Grid Engine)
 installed. This tool is working on top of the [Go DRMAA2 API](https://github.com/dgruber/drmaa2) (which accesses the C API).
@@ -28,6 +30,14 @@ Go to ```cmd/d2proxy```
     $ source path/to/your/GE/installation
     $ godep restore
     $ ./build
+
+## Compilation of Cloud Foundry or Docker Proxy
+
+Go to ```cmd/cf-tasks``` or ```cmd/dockerproxy```
+
+    $ go install
+
+## Installation uc
 
 Go to ```cmd/uc```
 
@@ -44,6 +54,14 @@ Go to ```cmd/uc```
 or for listening on port 8282
     
     $ d2proxy -port=":8282" &
+
+Or a local Docker Proxy:
+
+    $ dockerproxy --otp "supersecret"
+
+Start a Docker container:
+
+    $ uc --otp=supersecret run --arg 120 --category "ubuntu:latest" /bin/sleep
 
 ### Test the proxies by opening the address in the webbrowser.
 
@@ -244,5 +262,5 @@ Future improvements are planned:
 
 #### Other
 
-Watch the quality of this project through [Go Report Card](http://goreportcard.com) which runs a few tests on it :-) http://goreportcard.com/report/dgruber/ubercluster
+A [Go Report Card](http://goreportcard.com/report/dgruber/ubercluster) is available.
 
