@@ -11,8 +11,8 @@ It consists of following components:
 - **uc** [![Build Status](https://travis-ci.org/dgruber/ubercluster.svg)](https://travis-ci.org/dgruber/ubercluster): Main command line tool to interact with the compute clusters (show status / start jobs). Pure Go - can run everywhere where you can compile Go (MacOS / Linux / Windows / ...). Communicates with proxies. 
 - **d2proxy**: Proxy which runs on a submit host of a compute cluster (Grid Engine cluster). Based on Go DRMAA2 (which is based on the DRMAA2 C API).
 - **d1proxy**: Example proxy for DRMAA (version 1) compatible clusters. Does not support most concepts but job submission works. Good starting point if you want to create your own proxy (which is btw. extremely easy).
-- [**cf-tasks**](https://github.com/dgruber/ubercluster/blob/master/cmd/cf-tasks/README.md): Example of a proxy which emits Cloud Foundry tasks as jobs.
-- [**dockerproxy**](https://github.com/dgruber/ubercluster/blob/master/cmd/dockerproxy/README.md): Example of a proxy which runs Docker containers as jobs.
+- [**cf-tasks**](https://github.com/dgruber/ubercluster/blob/master/cmd/cf-tasks): Example of a proxy which emits Cloud Foundry tasks as jobs.
+- [**dockerproxy**](https://github.com/dgruber/ubercluster/blob/master/cmd/dockerproxy): Example of a proxy which runs Docker containers as jobs.
 
 ![uc image](https://raw.githubusercontent.com/dgruber/ubercluster/master/img/uc.png)
 
