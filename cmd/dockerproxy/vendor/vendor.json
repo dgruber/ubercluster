@@ -24,38 +24,38 @@
 		{
 			"checksumSHA1": "5BprXyZzDdUWxTy62aq6BnF7/Yk=",
 			"path": "github.com/dgruber/ubercluster/pkg/http_helper",
-			"revision": "0f80bc5602fbca4d25584571b14133c3108a371a",
-			"revisionTime": "2017-08-27T11:55:08Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "fHG4MvcuIzn/gwssoZmGrAHbCng=",
 			"path": "github.com/dgruber/ubercluster/pkg/output",
-			"revision": "0f80bc5602fbca4d25584571b14133c3108a371a",
-			"revisionTime": "2017-08-27T11:55:08Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "L+QgDcuC1PMHU9rVAsg9eiqIHuU=",
 			"path": "github.com/dgruber/ubercluster/pkg/persistency",
-			"revision": "0f80bc5602fbca4d25584571b14133c3108a371a",
-			"revisionTime": "2017-08-27T11:55:08Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "5hc3AEgD9w0fN2sNo2fAbw9uyc4=",
 			"path": "github.com/dgruber/ubercluster/pkg/proxy",
-			"revision": "0f80bc5602fbca4d25584571b14133c3108a371a",
-			"revisionTime": "2017-08-27T11:55:08Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "K6LaQUlQlDKyPLm4TQ1LgE0uXKI=",
 			"path": "github.com/dgruber/ubercluster/pkg/staging",
-			"revision": "0f80bc5602fbca4d25584571b14133c3108a371a",
-			"revisionTime": "2017-08-27T11:55:08Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "NBy36sgjXr7H+oJ8ALz86Ks3DaU=",
 			"path": "github.com/dgruber/ubercluster/pkg/types",
-			"revision": "0f80bc5602fbca4d25584571b14133c3108a371a",
-			"revisionTime": "2017-08-27T11:55:08Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "Gj+xR1VgFKKmFXYOJMnAczC3Znk=",

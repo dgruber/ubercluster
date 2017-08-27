@@ -17,38 +17,38 @@
 		{
 			"checksumSHA1": "5BprXyZzDdUWxTy62aq6BnF7/Yk=",
 			"path": "github.com/dgruber/ubercluster/pkg/http_helper",
-			"revision": "2e6febd62781e5272b082010c9265f23d8d21d7a",
-			"revisionTime": "2017-08-26T14:52:19Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "fHG4MvcuIzn/gwssoZmGrAHbCng=",
 			"path": "github.com/dgruber/ubercluster/pkg/output",
-			"revision": "2e6febd62781e5272b082010c9265f23d8d21d7a",
-			"revisionTime": "2017-08-26T14:52:19Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "L+QgDcuC1PMHU9rVAsg9eiqIHuU=",
 			"path": "github.com/dgruber/ubercluster/pkg/persistency",
-			"revision": "2e6febd62781e5272b082010c9265f23d8d21d7a",
-			"revisionTime": "2017-08-26T14:52:19Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "5hc3AEgD9w0fN2sNo2fAbw9uyc4=",
 			"path": "github.com/dgruber/ubercluster/pkg/proxy",
-			"revision": "2e6febd62781e5272b082010c9265f23d8d21d7a",
-			"revisionTime": "2017-08-26T14:52:19Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "K6LaQUlQlDKyPLm4TQ1LgE0uXKI=",
 			"path": "github.com/dgruber/ubercluster/pkg/staging",
-			"revision": "2e6febd62781e5272b082010c9265f23d8d21d7a",
-			"revisionTime": "2017-08-26T14:52:19Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
-			"checksumSHA1": "AJ5g0jLux3TL1DETQmclotSy2RY=",
+			"checksumSHA1": "NBy36sgjXr7H+oJ8ALz86Ks3DaU=",
 			"path": "github.com/dgruber/ubercluster/pkg/types",
-			"revision": "2e6febd62781e5272b082010c9265f23d8d21d7a",
-			"revisionTime": "2017-08-26T14:52:19Z"
+			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
+			"revisionTime": "2017-08-27T11:57:47Z"
 		},
 		{
 			"checksumSHA1": "hveFTNQ9YEyYRs6SWuXM+XU9qRI=",
