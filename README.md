@@ -71,7 +71,7 @@ Example:
 
 ### Update config.json 
 
-The *config.json* file in **uc** directory needs to point to your cluster proxies. The *default* entry is the cluster/proxy which is used when no other is specified as parameter of **uc**.
+The *config.json* file (an example can be found in the **uc** directory) contains the contact details of the proxies used by **uc**. First **uc** scans the current working directory, then $HOME/.ubercluster/config.json, and finally /etc/ubercluster/config.json. The file can contain the locations of different proxies. The *default* entry is the cluster/proxy which is used when no other is specified as  __--cluster__ parameter of **uc**.
 
 ### Examples
 
