@@ -9,8 +9,9 @@ import (
 )
 
 // https://github.com/moby/moby/blob/master/api/types/container/config.go
-func jobTemplateToContainerConfig(jt types.JobTemplate) (*container.Config, error) {
+func jobTemplateToContainerConfig(jt types.JobTemplate) (*container.Config, *container.HostConfig, error) {
 	var cc container.Config
+	var hc container.HostConfig
 
 	cc.Image = jt.JobCategory
 	cc.WorkingDir = jt.WorkingDirectory
@@ -19,11 +20,15 @@ func jobTemplateToContainerConfig(jt types.JobTemplate) (*container.Config, erro
 		cc.Hostname = jt.CandidateMachines[0]
 	}
 
-	cmdSlice := []string{jt.RemoteCommand}
-	cmdSlice = append(cmdSlice, jt.Args...)
-	cc.Cmd = cmdSlice
+	if jt.RemoteCommand != "#nocommand#" {
+		cmdSlice := []string{jt.RemoteCommand}
+		cmdSlice = append(cmdSlice, jt.Args...)
+		cc.Cmd = cmdSlice
+	}
 
-	return &cc, nil
+	hc.PublishAllPorts = true
+
+	return &cc, &hc, nil
 }
 
 func pullImage(client DockerInterface, image string) error {
@@ -54,7 +59,7 @@ func (p *Proxy) runTask(jt types.JobTemplate) (string, error) {
 		return "", errors.New("No job category (app) requested.")
 	}
 
-	cc, err := jobTemplateToContainerConfig(jt)
+	cc, hc, err := jobTemplateToContainerConfig(jt)
 	if err != nil {
 		return "", fmt.Errorf("Can not run task (%s).", err.Error())
 	}
@@ -62,11 +67,15 @@ func (p *Proxy) runTask(jt types.JobTemplate) (string, error) {
 	if p.config.AllowImagePull {
 		exists, _ := imageExists(p.client, jt.JobCategory)
 		if exists == false {
-			pullImage(p.client, jt.JobCategory)
+			fmt.Printf("Pulling image %s\n", jt.JobCategory)
+			errPull := pullImage(p.client, jt.JobCategory)
+			if errPull != nil {
+				return "", errPull
+			}
 		}
 	}
 
-	resp, err := p.client.ContainerCreate(cc, nil, nil, "")
+	resp, err := p.client.ContainerCreate(cc, hc, nil, "")
 	if err != nil {
 		return "", fmt.Errorf("Error during container creation: %s", err.Error())
 	}

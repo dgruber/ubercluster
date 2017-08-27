@@ -53,7 +53,7 @@ var (
 	showSessionName    = showSession.Arg("name", "Name of the job session to show.").Default("all").String()
 
 	run         = app.Command("run", "Submits an application to a cluster.")
-	runCommand  = run.Arg("command", "Command to submit.").Required().String()
+	runCommand  = run.Arg("command", "Command to submit.").Default("#nocommand#").String()
 	runArg      = run.Flag("arg", "Argument of the command (use \" when having spaces).").Default("").String()
 	runName     = run.Flag("name", "Reference name of the command.").Default("").String()
 	runQueue    = run.Flag("queue", "Queue name for the job.").Default("").String()
