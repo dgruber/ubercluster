@@ -65,4 +65,8 @@ With the ```uc``` commmand line tools containers can be created:
     Jobid:  65eaddd872bc50515c8d1939147e1e42de439e28c3dc7f326e0d427ca8bff136
     Cluster:  default
 
-    
+Creating a container without a start command.
+
+    $ uc --otp "supersecret" run --category swaggerapi/swagger-editor
+
+ 
