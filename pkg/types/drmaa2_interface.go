@@ -142,8 +142,8 @@ const (
 	Cell
 	PA_RISC
 	PA_RISC64
-	x86
-	x64
+	X86
+	X64
 	IA_64
 	MIPS
 	MIPS64
@@ -169,9 +169,9 @@ func (cpu CPU) String() string {
 		return "PA_RISC"
 	case PA_RISC64:
 		return "PA_RISC64"
-	case x86:
+	case X86:
 		return "x86"
-	case x64:
+	case X64:
 		return "x64"
 	case IA_64:
 		return "IA_64"

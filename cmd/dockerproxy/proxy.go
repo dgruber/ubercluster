@@ -77,7 +77,7 @@ func (p *Proxy) GetJobInfo(jobid string) *types.JobInfo {
 }
 
 func (p *Proxy) GetAllMachines(machines []string) ([]types.Machine, error) {
-	return []types.Machine{}, nil
+	return []types.Machine{LocalhostToMachine()}, nil
 }
 
 func (p *Proxy) GetAllQueues(queues []string) ([]types.Queue, error) {
