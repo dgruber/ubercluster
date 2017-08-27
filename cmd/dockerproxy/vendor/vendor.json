@@ -24,38 +24,38 @@
 		{
 			"checksumSHA1": "5BprXyZzDdUWxTy62aq6BnF7/Yk=",
 			"path": "github.com/dgruber/ubercluster/pkg/http_helper",
-			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
-			"revisionTime": "2017-08-27T11:57:47Z"
+			"revision": "b2cb941ab00c18af2811d28db89f0caa472409d8",
+			"revisionTime": "2017-08-27T12:10:28Z"
 		},
 		{
 			"checksumSHA1": "fHG4MvcuIzn/gwssoZmGrAHbCng=",
 			"path": "github.com/dgruber/ubercluster/pkg/output",
-			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
-			"revisionTime": "2017-08-27T11:57:47Z"
+			"revision": "b2cb941ab00c18af2811d28db89f0caa472409d8",
+			"revisionTime": "2017-08-27T12:10:28Z"
 		},
 		{
 			"checksumSHA1": "L+QgDcuC1PMHU9rVAsg9eiqIHuU=",
 			"path": "github.com/dgruber/ubercluster/pkg/persistency",
-			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
-			"revisionTime": "2017-08-27T11:57:47Z"
+			"revision": "b2cb941ab00c18af2811d28db89f0caa472409d8",
+			"revisionTime": "2017-08-27T12:10:28Z"
 		},
 		{
 			"checksumSHA1": "5hc3AEgD9w0fN2sNo2fAbw9uyc4=",
 			"path": "github.com/dgruber/ubercluster/pkg/proxy",
-			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
-			"revisionTime": "2017-08-27T11:57:47Z"
+			"revision": "b2cb941ab00c18af2811d28db89f0caa472409d8",
+			"revisionTime": "2017-08-27T12:10:28Z"
 		},
 		{
 			"checksumSHA1": "K6LaQUlQlDKyPLm4TQ1LgE0uXKI=",
 			"path": "github.com/dgruber/ubercluster/pkg/staging",
-			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
-			"revisionTime": "2017-08-27T11:57:47Z"
+			"revision": "b2cb941ab00c18af2811d28db89f0caa472409d8",
+			"revisionTime": "2017-08-27T12:10:28Z"
 		},
 		{
 			"checksumSHA1": "NBy36sgjXr7H+oJ8ALz86Ks3DaU=",
 			"path": "github.com/dgruber/ubercluster/pkg/types",
-			"revision": "2f46ac150f5f895e30963a04250f525f9522bc57",
-			"revisionTime": "2017-08-27T11:57:47Z"
+			"revision": "b2cb941ab00c18af2811d28db89f0caa472409d8",
+			"revisionTime": "2017-08-27T12:10:28Z"
 		},
 		{
 			"checksumSHA1": "Gj+xR1VgFKKmFXYOJMnAczC3Znk=",
@@ -529,16 +529,16 @@
 			"revisionTime": "2017-08-27T02:09:27Z"
 		},
 		{
-			"checksumSHA1": "KqecwXo3OO+p4N+E9RhlHvl9I+w=",
+			"checksumSHA1": "yVxrff8R3RB6H2XjH7IOSbY+1Fw=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "b699b7032584f0953262cb2788a0ca19bb494703",
-			"revisionTime": "2016-11-10T11:58:56Z"
+			"revision": "2d6f6f883a06fc0d5f4b14a81e4c28705ea64c15",
+			"revisionTime": "2017-08-25T18:47:02Z"
 		},
 		{
-			"checksumSHA1": "fpW2dhGFC6SrVzipJx7fjg2DIH8=",
+			"checksumSHA1": "gVfCD++7aVcdKF2spv6XkEM/wYw=",
 			"path": "golang.org/x/sys/windows",
-			"revision": "b699b7032584f0953262cb2788a0ca19bb494703",
-			"revisionTime": "2016-11-10T11:58:56Z"
+			"revision": "2d6f6f883a06fc0d5f4b14a81e4c28705ea64c15",
+			"revisionTime": "2017-08-25T18:47:02Z"
 		},
 		{
 			"checksumSHA1": "Mr4ur60bgQJnQFfJY0dGtwWwMPE=",
