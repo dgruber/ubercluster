@@ -238,7 +238,6 @@ func MakeJSessionSubmitHandler(impl ProxyImplementer, pi persistency.Persistency
 				log.Println("(proxy) Unmarshall error")
 				http.Error(w, uerr.Error(), http.StatusInternalServerError)
 			} else {
-				log.Printf("(proxy) Got JobTemplate: %v", jt)
 				log.Printf("(proxy) Set working dir for job %s\n", workingDir)
 				jt.WorkingDirectory = workingDir
 				// required when file is in staging area but not for general path
