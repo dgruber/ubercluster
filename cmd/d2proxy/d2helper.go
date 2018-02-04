@@ -144,6 +144,7 @@ func ConvertD2JobInfo(ji drmaa2.JobInfo) (uc types.JobInfo) {
 	uc.ExitStatus = ji.ExitStatus
 	uc.TerminatingSignal = ji.TerminatingSignal
 	uc.Annotation = ji.Annotation
+	// TODO
 	uc.State = (types.JobState)(ji.State)
 	uc.SubState = ji.SubState
 	uc.AllocatedMachines = make([]string, len(ji.AllocatedMachines), len(ji.AllocatedMachines))
