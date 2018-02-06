@@ -43,5 +43,4 @@ func main() {
 	var ps persistency.DummyPersistency
 
 	proxy.ProxyListenAndServe(*cliPort, *certFile, *keyFile, sc, &ps, &processProxy)
-	defer processProxy.SessionManager.DestroyJobSession(SESSION_NAME)
 }

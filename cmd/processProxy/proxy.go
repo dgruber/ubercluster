@@ -141,26 +141,55 @@ func (p *Proxy) GetJobInfo(jobid string) *types.JobInfo {
 
 // GetAllMachines
 func (p *Proxy) GetAllMachines(machines []string) ([]types.Machine, error) {
-	return nil, nil
+	hostname, err := os.Hostname()
+	if err != nil {
+		return nil, fmt.Errorf("can not get hostname of machine: %s", err)
+	}
+	if machines == nil {
+		// TODO Machine details
+		return []types.Machine{types.Machine{Name: hostname}}, nil
+	}
+	for i := range machines {
+		if machines[i] == hostname {
+			// TODO Machine details
+			return []types.Machine{types.Machine{Name: hostname}}, nil
+		}
+	}
+	return []types.Machine{}, nil
 }
 
 // GetAllQueues
 func (p *Proxy) GetAllQueues(queues []string) ([]types.Queue, error) {
-	var q types.Queue
-	q.Name = "os"
-	return []types.Queue{q}, nil
+	q := types.Queue{
+		Name: "os",
+	}
+	if queues == nil {
+		return []types.Queue{q}, nil
+	}
+	for i := range queues {
+		if queues[i] == "os" {
+			return []types.Queue{q}, nil
+		}
+	}
+	return []types.Queue{}, nil
 }
 
-// GetAllSessions just returns the job session.
+// GetAllSessions just returns the by the proxy created job session.
 func (p *Proxy) GetAllSessions(session []string) ([]string, error) {
-	allsessions := make([]string, 0, 1)
-	allsessions = append(allsessions, SESSION_NAME)
-	return allsessions, nil
+	if session == nil {
+		return []string{SESSION_NAME}, nil
+	}
+	for i := range session {
+		if session[i] == SESSION_NAME {
+			return []string{SESSION_NAME}, nil
+		}
+	}
+	return []string{}, nil
 }
 
-// GetAllCategories returns nothing.
+// GetAllCategories returns nothing since there are no job categories.
 func (p *Proxy) GetAllCategories() ([]string, error) {
-	return nil, nil
+	return []string{}, nil
 }
 
 // DRMSVersion returns the version of the DRMAA implementation.
@@ -174,7 +203,10 @@ func (p *Proxy) DRMSVersion() string {
 
 // DRMSName returns the process manager implementation.
 func (p *Proxy) DRMSName() string {
-	name, _ := p.SessionManager.GetDrmsName()
+	name, err := p.SessionManager.GetDrmsName()
+	if err != nil {
+		return "unknown"
+	}
 	return name
 }
 

@@ -48,13 +48,26 @@ var _ = Describe("Proxy", func() {
 			Ω(ji).ShouldNot(BeNil())
 		})
 
-		It("should be possible to GetAllMaschines()", func() {})
+		It("should be possible to GetAllMaschines()", func() {
+			hostnames, err := proxy.GetAllMachines(nil)
+			Ω(err).Should(BeNil())
+			Ω(hostnames).ShouldNot(BeNil())
+			Ω(len(hostnames)).Should(BeNumerically("==", 1))
+		})
+
+		It("should be possible to filter GetAllMaschines()", func() {
+			hostnames, err := proxy.GetAllMachines([]string{"x"})
+			Ω(err).Should(BeNil())
+			Ω(hostnames).ShouldNot(BeNil())
+			Ω(len(hostnames)).Should(BeNumerically("==", 0))
+		})
 
 		It("should be possible to GetAllQueues()", func() {
 			queues, err := proxy.GetAllQueues(nil)
 			Ω(err).Should(BeNil())
 			Ω(queues).ShouldNot(BeNil())
 			Ω(len(queues)).Should(BeNumerically("==", 1))
+			Ω(queues[0].Name).Should(Equal("os"))
 		})
 
 		It("should be possible to filter GetAllQueues()", func() {
@@ -62,6 +75,28 @@ var _ = Describe("Proxy", func() {
 			Ω(err).Should(BeNil())
 			Ω(queues).ShouldNot(BeNil())
 			Ω(len(queues)).Should(BeNumerically("==", 0))
+		})
+
+		It("should be possible to GetAllSessions()", func() {
+			jobsessions, err := proxy.GetAllSessions(nil)
+			Ω(err).Should(BeNil())
+			Ω(jobsessions).ShouldNot(BeNil())
+			Ω(len(jobsessions)).Should(BeNumerically("==", 1))
+			Ω(jobsessions[0]).Should(Equal(SESSION_NAME))
+		})
+
+		It("should be possible to filter GetAllSessions()", func() {
+			jobsessions, err := proxy.GetAllSessions([]string{"x"})
+			Ω(err).Should(BeNil())
+			Ω(jobsessions).ShouldNot(BeNil())
+			Ω(len(jobsessions)).Should(BeNumerically("==", 0))
+		})
+
+		It("should be possible to get GetAllCategories()", func() {
+			cats, err := proxy.GetAllCategories()
+			Ω(err).Should(BeNil())
+			Ω(cats).ShouldNot(BeNil())
+			Ω(len(cats)).Should(BeNumerically("==", 0))
 		})
 
 		It("should be possible to get DRMSVersion()", func() {

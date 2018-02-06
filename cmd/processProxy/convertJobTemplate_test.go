@@ -15,7 +15,9 @@ var _ = Describe("ConvertJobTemplate", func() {
 		var input types.JobTemplate
 
 		BeforeEach(func() {
-			input = types.JobTemplate{RemoteCommand: "command"}
+			input = types.JobTemplate{
+				RemoteCommand: "command",
+			}
 		})
 
 		It("should convert the job template", func() {
