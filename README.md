@@ -10,9 +10,10 @@ for Cloud Foundry tasks or local Docker containers.
 It consists of following components:
 - **uc** [![Build Status](https://travis-ci.org/dgruber/ubercluster.svg)](https://travis-ci.org/dgruber/ubercluster): Main command line tool to interact with the compute clusters (show status / start jobs). Pure Go - can run everywhere where you can compile Go (MacOS / Linux / Windows / ...). Communicates with proxies. 
 - **d2proxy**: Proxy which runs on a submit host of a compute cluster (Grid Engine cluster). Based on Go DRMAA2 (which is based on the DRMAA2 C API).
-- **d1proxy**: Example proxy for DRMAA (version 1) compatible clusters. Does not support most concepts but job submission works. Good starting point if you want to create your own proxy (which is btw. extremely easy).
-- [**cf-tasks**](https://github.com/dgruber/ubercluster/blob/master/cmd/cf-tasks): Example of a proxy which emits Cloud Foundry tasks as jobs.
-- [**dockerproxy**](https://github.com/dgruber/ubercluster/blob/master/cmd/dockerproxy): Example of a proxy which runs Docker containers as jobs.
+- **d1proxy**: Proxy for DRMAA (version 1) compatible clusters. Does not support most concepts but job submission works. Good starting point if you want to create your own proxy (which is btw. extremely easy).
+- [**cf-tasks**](https://github.com/dgruber/ubercluster/blob/master/cmd/cf-tasks): Proxy which emits Cloud Foundry tasks as jobs.
+- [**dockerproxy**](https://github.com/dgruber/ubercluster/blob/master/cmd/dockerproxy): Proxy which runs Docker containers as jobs.
+- [**processProxy**](https://github.com/dgruber/ubercluster/blob/master/cmd/processProxy): Proxy which starts local processes as jobs.
 
 ![uc image](https://raw.githubusercontent.com/dgruber/ubercluster/master/img/uc.png)
 
@@ -237,8 +238,6 @@ Please be aware that when exporting over http also others in the same network
 for jobs started in the same DRMAA2 job session (usually only those submitted
 by *uc*) so only jobs started with *uc* can be deleted, held, suspended...
 
-In order to protect your system several security mechanism are implemented:
-
 No security: Just starting proxy without any parameter. All traffic is unencrypted
 and the proxy accessible by everybody who can access the network port.
 
@@ -257,8 +256,10 @@ your service here: https://upgrade.yubico.com/getapikey/
 Alternatively you can setup your own OTP validation server
 (like https://github.com/digintLab/yubikey-server).
 
-Future improvements are planned:
-- TLS support (the proxies already supports it).
+Rudimentary mTLS support: Start **processProxy** with *--key* (points to 
+server key) and *--cert* (points to cert of server) *--clientCerts* 
+(points to a directory with trusted client crts). *uc* needs to use
+*--cert* and *--key* of client certificates.
 
 #### Other
 
