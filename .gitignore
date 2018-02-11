@@ -17,6 +17,12 @@ manifest_daniel.yml
 coverage.out
 test
 
+*.key
+*.crt
+*.csr
+*.pem
+
+cf-tasks
 dockerproxy
 
 /uploads

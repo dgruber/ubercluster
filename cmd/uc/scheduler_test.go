@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 )
 
@@ -63,7 +64,7 @@ func BenchmarkProbabilisticSelection(b *testing.B) {
 func TestRandomScheduling(t *testing.T) {
 	for amountOfCluster := 1; amountOfCluster < 10; amountOfCluster++ {
 		conf := makeTestConfig(amountOfCluster)
-		sched := MakeNewScheduler(RandomSchedulerType, conf)
+		sched := MakeNewScheduler(RandomSchedulerType, conf, &http.Client{})
 		names := make([]string, 10000, 10000)
 		for i := 0; i < 10000; i++ {
 			names[i] = sched.Impl.SelectCluster()
@@ -94,7 +95,7 @@ func TestRandomScheduling(t *testing.T) {
 
 func BenchmarkRandomScheduling(b *testing.B) {
 	conf := makeTestConfig(10)
-	sched := MakeNewScheduler(RandomSchedulerType, conf)
+	sched := MakeNewScheduler(RandomSchedulerType, conf, &http.Client{})
 	for i := 0; i < b.N; i++ {
 		sched.Impl.SelectCluster()
 	}
@@ -104,7 +105,7 @@ func BenchmarkLoadBasedScheduling(b *testing.B) {
 	// doesn't make much sense since it tries to get the load
 	// from the clusters (which does not exist of course)
 	conf := makeTestConfig(10)
-	sched := MakeNewScheduler(LoadBasedSchedulerType, conf)
+	sched := MakeNewScheduler(LoadBasedSchedulerType, conf, &http.Client{})
 	for i := 0; i < b.N; i++ {
 		sched.Impl.SelectCluster()
 	}

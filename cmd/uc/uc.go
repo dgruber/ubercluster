@@ -38,6 +38,9 @@ var (
 	otp       = app.Flag("otp", "One time password (\"yubikey\") or shared secret.").Default("").String()
 	outformat = app.Flag("format", "Output format specifier (default/json).").Default("default").String()
 
+	certFile = app.Flag("cert", "PEM encoded certificate file.").Default("").String()
+	keyFile  = app.Flag("key", "PEM encoded private key file.").Default("").String()
+
 	show               = app.Command("show", "Displays information about connected clusters.")
 	showJob            = show.Command("job", "Information about a particular job.")
 	showJobStateId     = showJob.Flag("state", "Show only jobs in that state (r/q/h/s/R/Rh/d/f/u/all).").Default("all").String()
@@ -110,14 +113,6 @@ func main() {
 	// read in configuration
 	ReadConfig()
 
-	// based on cluster name or selection algorithm
-	// create the address to send requests
-	clusteraddress, clustername, err := selectClusterAddress(*cluster, *alg)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
 	// output can be produced in different formats
 	of := output.MakeOutputFormater(*outformat)
 
@@ -125,52 +120,64 @@ func main() {
 	var yubi bool
 	if *otp == "yubikey" {
 		yubi = true
-		*otp = getYubiKey()
+		*otp = GetYubiKeyOrExit()
 	} else {
 		yubi = false
 	}
+
+	r := NewRequest(*certFile, *keyFile, otp)
+
+	// based on cluster name or selection algorithm
+	// create the address to send requests
+	clusteraddress, clustername, err := r.SelectClusterAddress(*cluster, *alg)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	fs := staging.NewFilesystem(r.client)
 
 	switch p {
 	case showJob.FullCommand():
 		if showJobId != nil && *showJobId != "" {
 			log.Println("showJobId: ", *showJobId)
-			showJobDetails(clusteraddress, *showJobId, of)
+			r.ShowJobDetails(clusteraddress, *showJobId, of)
 		} else {
-			showJobs(clusteraddress, *showJobStateId, *showJobUser, of)
+			r.ShowJobs(clusteraddress, *showJobStateId, *showJobUser, of)
 		}
 	case cfgList.FullCommand():
 		listConfig(clusteraddress)
 	case showMachine.FullCommand():
-		showMachines(clusteraddress, *showMachineName, of)
+		r.ShowMachines(clusteraddress, *showMachineName, of)
 	case showQueue.FullCommand():
-		showQueues(clusteraddress, *showQueueName, of)
+		r.ShowQueues(clusteraddress, *showQueueName, of)
 	case showCategories.FullCommand():
-		showJobCategories(clusteraddress, "ubercluster", *showCategoriesName)
+		r.ShowJobCategories(clusteraddress, "ubercluster", *showCategoriesName)
 	case showSession.FullCommand():
-		showJobSessions(clusteraddress, *showSessionName)
+		r.ShowJobSessions(clusteraddress, *showSessionName)
 	case run.FullCommand():
 		if *fileUp != "" {
-			staging.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
+			fs.FsUploadFile(*otp, clusteraddress, "ubercluster", *fileUp)
 			if yubi {
-				*otp = getYubiKey() // we need another one time password for submission
+				*otp = GetYubiKeyOrExit() // we need another one time password for submission
 			}
 		}
-		submitJob(clusteraddress, clustername, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
+		r.SubmitJob(clusteraddress, clustername, *runName, *runCommand, *runArg, *runQueue, *runCategory, *otp)
 	case runlocal.FullCommand():
-		runLocalRequest(*otp, clusteraddress, *runlocalCommand, *runlocalArg)
+		r.RunLocalRequest(*otp, clusteraddress, *runlocalCommand, *runlocalArg)
 	case terminateJob.FullCommand():
-		performOperation(clusteraddress, "ubercluster", "terminate", *terminateJobId)
+		r.PerformOperation(clusteraddress, "ubercluster", "terminate", *terminateJobId)
 	case suspendJob.FullCommand():
-		performOperation(clusteraddress, "ubercluster", "suspend", *suspendJobId)
+		r.PerformOperation(clusteraddress, "ubercluster", "suspend", *suspendJobId)
 	case resumeJob.FullCommand():
-		performOperation(clusteraddress, "ubercluster", "resume", *resumeJobId)
+		r.PerformOperation(clusteraddress, "ubercluster", "resume", *resumeJobId)
 	case fsLs.FullCommand():
-		staging.FsListFiles(*otp, clusteraddress, "ubercluster", of)
+		fs.FsListFiles(*otp, clusteraddress, "ubercluster", of)
 	case fsUp.FullCommand():
-		staging.FsUploadFiles(*otp, clusteraddress, "ubercluster", *fsUpFiles, of)
+		fs.FsUploadFiles(*otp, clusteraddress, "ubercluster", *fsUpFiles, of)
 	case fsDown.FullCommand():
-		staging.FsDownloadFiles(*otp, clusteraddress, "ubercluster", *fsDownFiles, of)
+		fs.FsDownloadFiles(*otp, clusteraddress, "ubercluster", *fsDownFiles, of)
 	case incpt.FullCommand():
-		inceptionMode(*incptPort)
+		inceptionMode(*certFile, *keyFile, *otp, *incptPort)
 	}
 }

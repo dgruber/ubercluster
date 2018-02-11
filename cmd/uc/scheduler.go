@@ -23,6 +23,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -50,7 +51,7 @@ type SchedulerImpl struct {
 
 // MakeNewScheduler create a new scheduler implementation based
 // on the SchedulerType and the cluster Config.
-func MakeNewScheduler(st SchedulerType, config Config) *SchedulerImpl {
+func MakeNewScheduler(st SchedulerType, config Config, client *http.Client) *SchedulerImpl {
 	if seeded == false {
 		rand.Seed(time.Now().UTC().UnixNano())
 		seeded = true
@@ -58,16 +59,19 @@ func MakeNewScheduler(st SchedulerType, config Config) *SchedulerImpl {
 	var s SchedulerImpl
 	switch st {
 	case ProbabilisticSchedulerType:
-		var ps ProbSched
-		ps.conf = config
-		s.Impl = &ps
+		s.Impl = &ProbSched{
+			conf:   config,
+			client: client,
+		}
 	case RandomSchedulerType:
 		s.Impl = &RandomSched{
-			conf: config,
+			conf:   config,
+			client: client,
 		}
 	case LoadBasedSchedulerType:
 		s.Impl = &LoadBasedSched{
-			conf: config,
+			conf:   config,
+			client: client,
 		}
 	}
 	return &s
@@ -76,7 +80,8 @@ func MakeNewScheduler(st SchedulerType, config Config) *SchedulerImpl {
 // Implements the cluster selection algorithms.
 
 type ProbSched struct {
-	conf Config
+	conf   Config
+	client *http.Client
 }
 
 // probabilisticScheduler returns the name of the selected
@@ -88,7 +93,7 @@ type ProbSched struct {
 // same probability to be chosen.
 func (ps *ProbSched) SelectCluster() string {
 	// get load of each cluster
-	selection := probabilisticSelection(getAllLoadValues(ps.conf))
+	selection := probabilisticSelection(getAllLoadValues(ps.conf, ps.client))
 	if selection >= 0 {
 		log.Printf("Selected cluster %s due to probabilistic selection.\n",
 			ps.conf.Cluster[selection].Name)
@@ -134,8 +139,8 @@ type loadValues struct {
 	load []float64
 }
 
-func getClusterLoad(lv *loadValues, index int, request string) {
-	if resp, err := http_helper.UberGet(*otp, request); err == nil {
+func getClusterLoad(lv *loadValues, index int, request string, client *http.Client) {
+	if resp, err := http_helper.UberGet(client, *otp, request); err == nil {
 		defer resp.Body.Close()
 		decoder := json.NewDecoder(resp.Body)
 		var load float64
@@ -148,14 +153,14 @@ func getClusterLoad(lv *loadValues, index int, request string) {
 	lv.Done()
 }
 
-func getAllLoadValues(conf Config) []float64 {
+func getAllLoadValues(conf Config, client *http.Client) []float64 {
 	var lv loadValues
 	lv.load = make([]float64, len(conf.Cluster), len(conf.Cluster))
 	lv.Add(len(conf.Cluster))
 	for i := range conf.Cluster {
 		addr := conf.Cluster[i].Address
 		ver := conf.Cluster[i].ProtocolVersion
-		go getClusterLoad(&lv, i, fmt.Sprintf("%s/%s/drmsload", addr, ver))
+		go getClusterLoad(&lv, i, fmt.Sprintf("%s/%s/drmsload", addr, ver), client)
 	}
 	lv.Wait()
 	return lv.load
@@ -174,19 +179,21 @@ func minLoad(load []float64) int {
 }
 
 type LoadBasedSched struct {
-	conf Config
+	conf   Config
+	client *http.Client
 }
 
 // SelectCluster of the LoadBasedSched is a simple scheduler
 // that selects the cluster with the lowest load.
 func (lbs *LoadBasedSched) SelectCluster() string {
 	// get all load values (time consuming)
-	load := getAllLoadValues(lbs.conf)
+	load := getAllLoadValues(lbs.conf, lbs.client)
 	return lbs.conf.Cluster[minLoad(load)].Name
 }
 
 type RandomSched struct {
-	conf Config
+	conf   Config
+	client *http.Client
 }
 
 // SelectCluster of the random scheduler selects a

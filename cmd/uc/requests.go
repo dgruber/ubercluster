@@ -18,22 +18,100 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/dgruber/ubercluster/pkg/http_helper"
 	"github.com/dgruber/ubercluster/pkg/output"
 	"github.com/dgruber/ubercluster/pkg/proxy"
 	"github.com/dgruber/ubercluster/pkg/types"
-	"golang.org/x/crypto/ssh/terminal"
+
+	"crypto/x509"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"time"
 )
 
-func getJob(clusteraddress, jobid string) (types.JobInfo, error) {
+type Request struct {
+	otp    *string
+	client *http.Client
+}
+
+func NewRequest(certFile string, keyFile string, oneTimePassword *string) *Request {
+	var config tls.Config
+
+	if certFile != "" && keyFile != "" {
+		fmt.Println("Using certificates")
+
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			log.Panicln(err.Error())
+		}
+
+		certs := []tls.Certificate{cert}
+
+		clientCACert, err := ioutil.ReadFile(certFile)
+		if err != nil {
+			log.Fatal("Unable to open cert", err)
+		}
+
+		clientCertPool := x509.NewCertPool()
+		clientCertPool.AppendCertsFromPEM(clientCACert)
+
+		config = tls.Config{
+			InsecureSkipVerify: true,
+			Certificates:       certs,
+			RootCAs:            clientCertPool,
+		}
+		config.BuildNameToCertificate()
+	} else {
+		fmt.Println("unsecure client")
+		config = tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+
+	config.BuildNameToCertificate()
+
+	tr := &http.Transport{
+		MaxIdleConns:       10,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: false,
+		TLSClientConfig:    &config,
+	}
+
+	client := &http.Client{Transport: tr}
+
+	return &Request{
+		otp:    oneTimePassword,
+		client: client,
+	}
+}
+
+func (r *Request) SelectClusterAddress(cluster, alg string) (string, string, error) {
+	// a cluster selection algorithm chooses the right cluster
+	switch alg {
+	case "rand": // random scheduling
+		return GetClusterAddress(MakeNewScheduler(RandomSchedulerType, config, r.client).Impl.SelectCluster())
+	case "prob": // probabilistic scheduling
+		return GetClusterAddress(MakeNewScheduler(ProbabilisticSchedulerType, config, r.client).Impl.SelectCluster())
+	case "load": // load based scheduling
+		return GetClusterAddress(MakeNewScheduler(LoadBasedSchedulerType, config, r.client).Impl.SelectCluster())
+	}
+	if alg != "" {
+		fmt.Println("Unkown scheduler selection algorithm: ", alg)
+		os.Exit(2)
+	}
+	return GetClusterAddress(cluster)
+}
+
+func (r *Request) GetJob(clusteraddress, jobid string) (types.JobInfo, error) {
 	request := fmt.Sprintf("%s%s%s", clusteraddress, "/msession/jobinfo/", jobid)
 	log.Println("Requesting:" + request)
-	resp, err := http_helper.UberGet(*otp, request)
+
+	resp, err := http_helper.UberGet(r.client, *otp, request)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -48,8 +126,8 @@ func getJob(clusteraddress, jobid string) (types.JobInfo, error) {
 	return jobinfo, nil
 }
 
-func showJobDetails(clustername, jobid string, of output.OutputFormater) {
-	jobinfo, err := getJob(clustername, jobid)
+func (r *Request) ShowJobDetails(clustername, jobid string, of output.OutputFormater) {
+	jobinfo, err := r.GetJob(clustername, jobid)
 	if err == nil {
 		of.PrintJobDetails(jobinfo)
 	} else {
@@ -57,7 +135,7 @@ func showJobDetails(clustername, jobid string, of output.OutputFormater) {
 	}
 }
 
-func getJobs(clusteraddress, state, user string) []types.JobInfo {
+func (r *Request) GetJobs(clusteraddress, state, user string) []types.JobInfo {
 	firstSet := false
 	request := fmt.Sprintf("%s%s", clusteraddress, "/msession/jobinfos")
 	if state != "" && state != "all" {
@@ -73,7 +151,7 @@ func getJobs(clusteraddress, state, user string) []types.JobInfo {
 		request = fmt.Sprintf("%s%s%s", request, "user=", user)
 	}
 	log.Println("Requesting:" + request)
-	resp, err := http_helper.UberGet(*otp, request)
+	resp, err := http_helper.UberGet(r.client, *otp, request)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -88,8 +166,8 @@ func getJobs(clusteraddress, state, user string) []types.JobInfo {
 	return joblist
 }
 
-func showJobs(clusteraddress, state, user string, of output.OutputFormater) {
-	joblist := getJobs(clusteraddress, state, user)
+func (r *Request) ShowJobs(clusteraddress, state, user string, of output.OutputFormater) {
+	joblist := r.GetJobs(clusteraddress, state, user)
 	for index := range joblist {
 		of.PrintJobDetails(joblist[index])
 		fmt.Println()
@@ -103,21 +181,7 @@ func showJobs(clusteraddress, state, user string, of output.OutputFormater) {
 	}
 }
 
-// getYubiKey requests a one time password on command line from
-// the user and returns it - the one time password is created
-// by pressing the yubikey button
-func getYubiKey() string {
-	fmt.Printf("Press yubikey button: ")
-	if pw, err := terminal.ReadPassword(0); err != nil {
-		fmt.Println("Error reading in password from stdin: ", err)
-		os.Exit(1)
-	} else {
-		return string(pw)
-	}
-	return ""
-}
-
-func runLocalRequest(otp, clusteraddress, cmd, arg string) {
+func (r *Request) RunLocalRequest(otp, clusteraddress, cmd, arg string) {
 	url := fmt.Sprintf("%s%s", clusteraddress, "/local/run")
 	log.Println("POST to URL:", url)
 	rlr := types.RunLocalRequest{
@@ -125,7 +189,7 @@ func runLocalRequest(otp, clusteraddress, cmd, arg string) {
 		Arg:     arg,
 	}
 	body, _ := json.Marshal(rlr)
-	resp, err := http_helper.UberPost(otp, url, "application/json", bytes.NewBuffer(body))
+	resp, err := http_helper.UberPost(r.client, otp, url, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println("Run local error: ", err)
 		return
@@ -142,7 +206,7 @@ func runLocalRequest(otp, clusteraddress, cmd, arg string) {
 	fmt.Printf("%s\n", answer)
 }
 
-func createJobRequest(jobname, cmd, arg, queue, category string) []byte {
+func (r *Request) CreateJobRequest(jobname, cmd, arg, queue, category string) []byte {
 	jt := types.JobTemplate{
 		RemoteCommand: cmd,
 		JobName:       jobname,
@@ -156,16 +220,16 @@ func createJobRequest(jobname, cmd, arg, queue, category string) []byte {
 	return jtb
 }
 
-// submitJob creates a new job in the given cluster
-func submitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, otp string) {
-	jtb := createJobRequest(jobname, cmd, arg, queue, category)
+// SubmitJob creates a new job in the given cluster
+func (r *Request) SubmitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, otp string) {
+	jtb := r.CreateJobRequest(jobname, cmd, arg, queue, category)
 
 	// create URL of cluster to send the job to
 	url := fmt.Sprintf("%s%s", clusteraddress, "/jsession/default/run")
 	log.Println("POST to URL:", url)
 	log.Println("Submit template: ", string(jtb))
 
-	resp, err := http_helper.UberPost(otp, url, "application/json", bytes.NewBuffer(jtb))
+	resp, err := http_helper.UberPost(r.client, otp, url, "application/json", bytes.NewBuffer(jtb))
 	if err != nil {
 		fmt.Printf("Job submission error: %s\n", err.Error())
 		return
@@ -184,17 +248,17 @@ func submitJob(clusteraddress, clustername, jobname, cmd, arg, queue, category, 
 	if err != nil {
 		fmt.Printf("Error during decoding answer from POSTING to proxy during job submission: %s\n", string(body))
 	} else {
-		fmt.Println("Jobid: ", answer.JobId)
+		fmt.Println("Job ID: ", answer.JobId)
 		fmt.Println("Cluster: ", clustername)
 	}
 }
 
-func showQueues(clustername, queue string, of output.OutputFormater) {
-	showMachinesQueues(clustername, "queues", queue, of)
+func (r *Request) ShowQueues(clustername, queue string, of output.OutputFormater) {
+	r.ShowMachinesQueues(clustername, "queues", queue, of)
 }
 
-func showMachines(clustername, machine string, of output.OutputFormater) {
-	showMachinesQueues(clustername, "machines", machine, of)
+func (r *Request) ShowMachines(clustername, machine string, of output.OutputFormater) {
+	r.ShowMachinesQueues(clustername, "machines", machine, of)
 }
 
 func createRequestMachinesQueues(clusteraddress, req, filter string) string {
@@ -213,8 +277,8 @@ func createRequestMachinesQueues(clusteraddress, req, filter string) string {
 	return request
 }
 
-func getQueues(clusteraddress, filter string) ([]types.Queue, error) {
-	resp, err := http_helper.UberGet(*otp, createRequestMachinesQueues(clusteraddress, "queues", filter))
+func (r *Request) GetQueues(clusteraddress, filter string) ([]types.Queue, error) {
+	resp, err := http_helper.UberGet(r.client, *otp, createRequestMachinesQueues(clusteraddress, "queues", filter))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -230,8 +294,8 @@ func getQueues(clusteraddress, filter string) ([]types.Queue, error) {
 	return queuelist, nil
 }
 
-func getMachines(clusteraddress, filter string) ([]types.Machine, error) {
-	resp, err := http_helper.UberGet(*otp, createRequestMachinesQueues(clusteraddress, "machines", filter))
+func (r *Request) GetMachines(clusteraddress, filter string) ([]types.Machine, error) {
+	resp, err := http_helper.UberGet(r.client, *otp, createRequestMachinesQueues(clusteraddress, "machines", filter))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -247,17 +311,17 @@ func getMachines(clusteraddress, filter string) ([]types.Machine, error) {
 	return machinelist, nil
 }
 
-func showMachinesQueues(clusteraddress, req, filter string, of output.OutputFormater) {
+func (r *Request) ShowMachinesQueues(clusteraddress, req, filter string, of output.OutputFormater) {
 	log.Println("showMachineQueues: ", clusteraddress, req, filter)
 	if req == "machines" {
-		if machinelist, err := getMachines(clusteraddress, filter); err == nil {
+		if machinelist, err := r.GetMachines(clusteraddress, filter); err == nil {
 			for index := range machinelist {
 				//emulateQhost(machinelist[index])
 				of.PrintMachine(machinelist[index])
 			}
 		}
 	} else if req == "queues" {
-		if queuelist, err := getQueues(clusteraddress, filter); err == nil {
+		if queuelist, err := r.GetQueues(clusteraddress, filter); err == nil {
 			log.Println("Queuelist: ", queuelist)
 			for index := range queuelist {
 				fmt.Println(queuelist[index].Name)
@@ -267,14 +331,14 @@ func showMachinesQueues(clusteraddress, req, filter string, of output.OutputForm
 	}
 }
 
-// performOperation sends request to perform an operation on a particular
+// PerformOperation sends request to perform an operation on a particular
 // job to a connected cluster (to its proxy).
 // The request url is: jsession/<jobsessionname>/<operation>/jobnumber
-func performOperation(clusteraddress, jsession, operation, jobId string) {
+func (r *Request) PerformOperation(clusteraddress, jsession, operation, jobId string) {
 	url := fmt.Sprintf("%s/jsession/%s/%s/%s", clusteraddress, jsession, operation, jobId)
 	log.Println("Requesting:" + url)
 	buffer := bytes.NewBuffer([]byte(""))
-	if resp, err := http_helper.UberPost(*otp, url, "application/json", buffer); err != nil {
+	if resp, err := http_helper.UberPost(r.client, *otp, url, "application/json", buffer); err != nil {
 		fmt.Println("Error during post: ", err)
 	} else {
 		log.Println("Status of request:", resp.Status)
@@ -284,7 +348,7 @@ func performOperation(clusteraddress, jsession, operation, jobId string) {
 	}
 }
 
-func getJobCategories(clusteraddress, jsession, category string) []string {
+func (r *Request) GetJobCategories(clusteraddress, jsession, category string) []string {
 	var url string
 	if category == "all" || category == "" {
 		url = fmt.Sprintf("%s/jsession/%s/jobcategories", clusteraddress, jsession)
@@ -292,7 +356,7 @@ func getJobCategories(clusteraddress, jsession, category string) []string {
 		url = fmt.Sprintf("%s/jsession/%s/jobcategory/%s", clusteraddress, jsession, category)
 	}
 	log.Println("Requesting:" + url)
-	if resp, err := http_helper.UberGet(*otp, url); err != nil {
+	if resp, err := http_helper.UberGet(r.client, *otp, url); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	} else {
@@ -310,16 +374,16 @@ func getJobCategories(clusteraddress, jsession, category string) []string {
 	return nil
 }
 
-func showJobCategories(clusteraddress, jsession, category string) {
-	for _, cat := range getJobCategories(clusteraddress, jsession, category) {
+func (r *Request) ShowJobCategories(clusteraddress, jsession, category string) {
+	for _, cat := range r.GetJobCategories(clusteraddress, jsession, category) {
 		fmt.Println(cat)
 	}
 }
 
-func getJobSessions(clusteraddress, jsession string) []string {
+func (r *Request) GetJobSessions(clusteraddress, jsession string) []string {
 	url := fmt.Sprintf("%s/jsessions", clusteraddress)
 	log.Println("Requesting:" + url)
-	if resp, err := http_helper.UberGet(*otp, url); err != nil {
+	if resp, err := http_helper.UberGet(r.client, *otp, url); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	} else {
@@ -344,10 +408,10 @@ func getJobSessions(clusteraddress, jsession string) []string {
 	return nil
 }
 
-// showJobSessions requests all job sessions available on the
+// ShowJobSessions requests all job sessions available on the
 // given cluster and prints them out to the user.
-func showJobSessions(clusteraddress, jsession string) {
-	jSessions := getJobSessions(clusteraddress, jsession)
+func (r *Request) ShowJobSessions(clusteraddress, jsession string) {
+	jSessions := r.GetJobSessions(clusteraddress, jsession)
 	if len(jSessions) >= 1 {
 		for _, js := range jSessions {
 			fmt.Println(js)

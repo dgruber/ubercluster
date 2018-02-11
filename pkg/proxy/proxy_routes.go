@@ -20,29 +20,11 @@ import (
 	"fmt"
 	"github.com/GeertJohan/yubigo"
 	"github.com/dgruber/ubercluster/pkg/persistency"
-	"github.com/dgruber/ubercluster/pkg/types"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 )
-
-// ProxyImplementer interface specified functions required to interface
-// a ubercluster proxy. Those functions are called in the standard
-// http request handlers.
-type ProxyImplementer interface {
-	GetJobInfosByFilter(filtered bool, filter types.JobInfo) []types.JobInfo
-	GetJobInfo(jobid string) *types.JobInfo
-	GetAllMachines(machines []string) ([]types.Machine, error)
-	GetAllQueues(queues []string) ([]types.Queue, error)
-	GetAllCategories() ([]string, error)
-	GetAllSessions(session []string) ([]string, error)
-	DRMSVersion() string
-	DRMSName() string
-	RunJob(template types.JobTemplate) (string, error)
-	JobOperation(jobsessionname, operation, jobid string) (string, error)
-	DRMSLoad() float64
-}
 
 type Routes []Route
 
@@ -249,30 +231,4 @@ func NewProxyRouter(impl ProxyImplementer, sc SecConfig, pi persistency.Persiste
 		}
 	}
 	return router
-}
-
-// SecConfig stores security related configuration settings for the ubercluster Proxy
-type SecConfig struct {
-	OTP            string   // secret key or "yubikey"
-	YubiID         string   // ID of yubiservice in case of yubikey https://upgrade.yubico.com/getapikey/
-	YubiSecret     string   // Secret of yubiservice in case of yubikey https://upgrade.yubico.com/getapikey/
-	YubiAllowedIDs []string // IDs of yubkeys which are allowed
-}
-
-// ProxyListenAndServe starts an http proxy for a cluster which is accessed by functions
-// specified in the ProxyImplementer interface. If a certification and key file is given
-// as parameter then it starts an TLS secured http proxy. The port is specified by addr
-// in the form which is used by http.ListenAndServe.
-func ProxyListenAndServe(addr, certFile, keyFile string, sc SecConfig, pi persistency.PersistencyImplementer, impl ProxyImplementer) {
-	if certFile != "" && keyFile != "" {
-		if err := http.ListenAndServeTLS(addr, certFile, keyFile, NewProxyRouter(impl, sc, pi)); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	} else {
-		if err := http.ListenAndServe(addr, NewProxyRouter(impl, sc, pi)); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	}
 }
