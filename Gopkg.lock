@@ -76,7 +76,7 @@
     "pkg/storage",
     "pkg/storage/boltstore"
   ]
-  revision = "903b494e10d9942a81a886e39a53fe02320ca26b"
+  revision = "baa06ddef2d496a642fd4dc072ec108f86b51a59"
 
 [[projects]]
   branch = "master"
