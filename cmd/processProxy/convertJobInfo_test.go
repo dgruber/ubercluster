@@ -6,9 +6,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"time"
+
 	"github.com/dgruber/drmaa2interface"
 	"github.com/dgruber/ubercluster/pkg/types"
-	"time"
 )
 
 var _ = Describe("ConvertJobInfo", func() {

@@ -32,6 +32,16 @@ import (
 	"path/filepath"
 )
 
+type Filesystem struct {
+	client *http.Client
+}
+
+func NewFilesystem(client *http.Client) *Filesystem {
+	return &Filesystem{
+		client: client,
+	}
+}
+
 // CheckUploadFilesystem pre-checks the configured directory which
 // is going to used for files staging during startup of the proxy
 func CheckUploadFilesystem(dirname string) error {
@@ -94,7 +104,7 @@ func fileUpload(url string, params map[string]string, paramName, filePath string
 
 // FsUploadFile uploads a file given by the path to a given
 // cluster by setting a security key if required.
-func FsUploadFile(otp, clusteraddress, jsName, filename string) {
+func (fs *Filesystem) FsUploadFile(otp, clusteraddress, jsName, filename string) {
 	if filename == "" {
 		fmt.Println("No filename given.")
 		return // nothing to do
@@ -107,13 +117,13 @@ func FsUploadFile(otp, clusteraddress, jsName, filename string) {
 	if otp != "" {
 		params["otp"] = otp
 	}
+
 	if req, err := fileUpload(url, params, "file", filename); err != nil {
 		fmt.Println("Error during filupload: ", err)
 		os.Exit(2)
 	} else {
-		var client http.Client
 		log.Println("Request: ", req)
-		if r, err := client.Do(req); err == nil {
+		if r, err := fs.client.Do(req); err == nil {
 			r.Body.Close()
 			fmt.Println("Uploaded file ", filename, r.Status)
 		} else {
@@ -126,10 +136,10 @@ func FsUploadFile(otp, clusteraddress, jsName, filename string) {
 
 // fsListFiles requests a list of files from the given
 // cluster and displays it
-func getFiles(otp, clusteraddress, jsName string) ([]types.FileInfo, error) {
+func getFiles(client *http.Client, otp, clusteraddress, jsName string) ([]types.FileInfo, error) {
 	request := fmt.Sprintf("%s/jsession/%s/staging/files", clusteraddress, jsName)
 	log.Println("Requesting:" + request)
-	resp, err := http_helper.UberGet(otp, request)
+	resp, err := http_helper.UberGet(client, otp, request)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -147,8 +157,8 @@ func getFiles(otp, clusteraddress, jsName string) ([]types.FileInfo, error) {
 // FsListFiles lists all files on the remote staging area,
 // theirs sizes, and if they are executable (i.e. can run
 // as remote jobs).
-func FsListFiles(otp, clusteraddress, jsName string, of output.OutputFormater) {
-	if fi, err := getFiles(otp, clusteraddress, jsName); err != nil {
+func (fs *Filesystem) FsListFiles(otp, clusteraddress, jsName string, of output.OutputFormater) {
+	if fi, err := getFiles(fs.client, otp, clusteraddress, jsName); err != nil {
 		fmt.Println("Error during fetching files in staging area: ", err)
 		os.Exit(1)
 	} else {
@@ -159,14 +169,14 @@ func FsListFiles(otp, clusteraddress, jsName string, of output.OutputFormater) {
 
 // fsUploadFiles uploads a given list of files to the
 // given cluster's staging area
-func FsUploadFiles(otp, clusteraddress, jsName string, files []string, of output.OutputFormater) {
+func (fs *Filesystem) FsUploadFiles(otp, clusteraddress, jsName string, files []string, of output.OutputFormater) {
 	log.Println("Uploading following files: ", files)
 	for _, file := range files {
-		FsUploadFile(otp, clusteraddress, jsName, file)
+		fs.FsUploadFile(otp, clusteraddress, jsName, file)
 	}
 }
 
-func DownloadFile(otp, clusteraddress, jsName, file string) {
+func (fs *Filesystem) DownloadFile(otp, clusteraddress, jsName, file string) {
 	url := fmt.Sprintf("%s/jsession/%s/staging/file/%s", clusteraddress, jsName, file)
 	log.Println("Using url: ", url)
 	if f, err := os.Create(file); err != nil {
@@ -174,7 +184,7 @@ func DownloadFile(otp, clusteraddress, jsName, file string) {
 		os.Exit(1)
 	} else {
 		defer f.Close()
-		if response, err := http.Get(url); err != nil {
+		if response, err := fs.client.Get(url); err != nil {
 			fmt.Println("Error during fetching file: ", err)
 			os.Exit(1)
 		} else {
@@ -192,9 +202,9 @@ func DownloadFile(otp, clusteraddress, jsName, file string) {
 
 // FsDownloadFiles downloads a list list of files from a
 // the staging area of a given cluster
-func FsDownloadFiles(otp, clusteraddress, jsName string, files []string, of output.OutputFormater) {
+func (fs *Filesystem) FsDownloadFiles(otp, clusteraddress, jsName string, files []string, of output.OutputFormater) {
 	log.Println("Downloading following files: ", files)
 	for _, file := range files {
-		DownloadFile(otp, clusteraddress, jsName, file)
+		fs.DownloadFile(otp, clusteraddress, jsName, file)
 	}
 }

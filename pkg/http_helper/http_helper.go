@@ -24,35 +24,31 @@ import (
 	"strings"
 )
 
-// uberGet makes an http GET request. Depending on the uc
-// configuration (currently cli param) it adds a one time
-// password.
-func UberGet(otp, request string) (resp *http.Response, err error) {
-	newRequest := request
+func addOneTimePassword(request, otp string) string {
 	if otp != "" {
 		// adding http secret key (OTP)
 		if strings.Contains(request, "?") {
-			newRequest = fmt.Sprintf("%s&otp=%s", request, otp)
+			request = fmt.Sprintf("%s&otp=%s", request, otp)
 		} else {
-			newRequest = fmt.Sprintf("%s?otp=%s", request, otp)
+			request = fmt.Sprintf("%s?otp=%s", request, otp)
 		}
 	}
+	return request
+}
+
+// uberGet makes an http GET request. Depending on the uc
+// configuration (currently cli param) it adds a one time
+// password.
+func UberGet(client *http.Client, otp, request string) (resp *http.Response, err error) {
+	newRequest := addOneTimePassword(request, otp)
 	log.Println("New request: ", newRequest)
-	return http.Get(newRequest)
+	return client.Get(newRequest)
 }
 
 // uberPost is a http.Post replacement which adds otp requests
 // and possibly others depending on the configuration.
-func UberPost(otp, url string, bodyType string, body io.Reader) (resp *http.Response, err error) {
-	newUrl := url
-	if otp != "" {
-		// adding http secret key (OTP)
-		if strings.Contains(url, "?") {
-			newUrl = fmt.Sprintf("%s&otp=%s", url, otp)
-		} else {
-			newUrl = fmt.Sprintf("%s?otp=%s", url, otp)
-		}
-	}
+func UberPost(client *http.Client, otp, url string, bodyType string, body io.Reader) (resp *http.Response, err error) {
+	newUrl := addOneTimePassword(url, otp)
 	log.Println("New POST: ", newUrl)
-	return http.Post(newUrl, bodyType, body)
+	return client.Post(newUrl, bodyType, body)
 }

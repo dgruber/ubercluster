@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/dgruber/drmaa2interface"
 	"github.com/dgruber/drmaa2os"
 	"github.com/dgruber/ubercluster/pkg/types"
-	"log"
-	"os"
 )
 
 type Proxy struct {

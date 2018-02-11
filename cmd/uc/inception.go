@@ -29,9 +29,17 @@ import (
 	"sync"
 )
 
-type inception struct {
+type Inception struct {
 	inceptionAddress string // address of uc itself
 	config           Config // uc configuration object
+	request          *Request
+}
+
+func NewInception(certFile, keyFile string, otp string, config Config) *Inception {
+	return &Inception{
+		config:  config, // configuration contains all connected clusters,
+		request: NewRequest(certFile, keyFile, &otp),
+	}
 }
 
 // Implements the ProxyImplementer interface
@@ -45,9 +53,9 @@ type jiProtected struct {
 
 // requestJobInfos requests job infos of jobs in the
 // given state from a cluster given by the address
-func requestJobInfos(ji *jiProtected, state string, address string) {
+func requestJobInfos(i *Inception, ji *jiProtected, state string, address string) {
 	log.Println("Requesting from: ", address)
-	jis := getJobs(address, state, "")
+	jis := i.request.GetJobs(address, state, "")
 	log.Println("Got following jobinfos: ", jis)
 	if jis != nil {
 		ji.Lock()
@@ -57,7 +65,7 @@ func requestJobInfos(ji *jiProtected, state string, address string) {
 	ji.Done()
 }
 
-func (i *inception) GetJobInfosByFilter(filtered bool, filter types.JobInfo) []types.JobInfo {
+func (i *Inception) GetJobInfosByFilter(filtered bool, filter types.JobInfo) []types.JobInfo {
 	var jip jiProtected
 	jip.jobinfos = make([]types.JobInfo, 0, 0)
 	jip.Add(len(i.config.Cluster))
@@ -68,7 +76,7 @@ func (i *inception) GetJobInfosByFilter(filtered bool, filter types.JobInfo) []t
 			jip.Done()
 			continue
 		}
-		go requestJobInfos(&jip, "all", fmt.Sprintf("%s/v1", c.Address))
+		go requestJobInfos(i, &jip, "all", fmt.Sprintf("%s/v1", c.Address))
 	}
 	// wait until we got all job infos from all cluster
 	jip.Wait()
@@ -76,7 +84,7 @@ func (i *inception) GetJobInfosByFilter(filtered bool, filter types.JobInfo) []t
 	return jip.jobinfos
 }
 
-func getJobFromCluster(i *inception, clustername string, jobid string) (*types.JobInfo, error) {
+func getJobFromCluster(i *Inception, clustername string, jobid string) (*types.JobInfo, error) {
 	// check if cluster name is known
 	address := ""
 	version := "v1"
@@ -90,7 +98,7 @@ func getJobFromCluster(i *inception, clustername string, jobid string) (*types.J
 	if address != "" {
 		request := fmt.Sprintf("%s%s", address, version)
 		log.Println("GetJobFromCluster request", request)
-		job, err := getJob(request, jobid)
+		job, err := i.request.GetJob(request, jobid)
 		if err == nil {
 			return &job, nil
 		}
@@ -101,7 +109,7 @@ func getJobFromCluster(i *inception, clustername string, jobid string) (*types.J
 	return nil, errors.New("Couldn't find clustername in config: " + clustername)
 }
 
-func (i *inception) GetJobInfo(jobid string) *types.JobInfo {
+func (i *Inception) GetJobInfo(jobid string) *types.JobInfo {
 	// search job id in all connected clusters
 	// if it has a postfix - only in that cluster
 	// 1301@mybiggridenginecluster search 1301 in the given cluster
@@ -121,7 +129,7 @@ func (i *inception) GetJobInfo(jobid string) *types.JobInfo {
 	return nil
 }
 
-func (i *inception) GetAllMachines(machines []string) ([]types.Machine, error) {
+func (i *Inception) GetAllMachines(machines []string) ([]types.Machine, error) {
 	allmachines := make([]types.Machine, 0, 0)
 	for _, c := range i.config.Cluster {
 		log.Println("Requesting from: ", c.Address)
@@ -134,7 +142,7 @@ func (i *inception) GetAllMachines(machines []string) ([]types.Machine, error) {
 			log.Panicln(err.Error())
 			return nil, err
 		}
-		if ms, err := getMachines(address, "all"); err == nil {
+		if ms, err := i.request.GetMachines(address, "all"); err == nil {
 			allmachines = append(allmachines, ms...)
 			log.Println("Appending: ", allmachines)
 		} else {
@@ -148,7 +156,7 @@ func (i *inception) GetAllMachines(machines []string) ([]types.Machine, error) {
 
 // GetAllQueues returns all queue names from all clusters which are
 // connected to the uc tool.
-func (i *inception) GetAllQueues(queues []string) ([]types.Queue, error) {
+func (i *Inception) GetAllQueues(queues []string) ([]types.Queue, error) {
 	allqueues := make([]types.Queue, 0, 0)
 	// TODO go functions of course
 	for _, c := range i.config.Cluster {
@@ -162,7 +170,7 @@ func (i *inception) GetAllQueues(queues []string) ([]types.Queue, error) {
 			log.Panicln(err.Error())
 			return nil, err
 		}
-		if qs, err := getQueues(address, "all"); err == nil {
+		if qs, err := i.request.GetQueues(address, "all"); err == nil {
 			allqueues = append(allqueues, qs...)
 			log.Println("Appending: ", allqueues)
 		} else {
@@ -174,14 +182,14 @@ func (i *inception) GetAllQueues(queues []string) ([]types.Queue, error) {
 	return allqueues, nil
 }
 
-func (i *inception) GetAllSessions(session []string) ([]string, error) {
+func (i *Inception) GetAllSessions(session []string) ([]string, error) {
 	// TODO implement
 	allsessions := make([]string, 0, 0)
 	log.Println("GetAllSessions() not implemented")
 	return allsessions, nil
 }
 
-func (i *inception) GetAllCategories() ([]string, error) {
+func (i *Inception) GetAllCategories() ([]string, error) {
 	cat := make([]string, 0, 0)
 	for _, c := range i.config.Cluster {
 		log.Println("Requesting from: ", c.Address)
@@ -194,39 +202,39 @@ func (i *inception) GetAllCategories() ([]string, error) {
 			log.Panicln(err.Error())
 			return nil, err
 		}
-		cat = append(cat, getJobCategories(address, "ubercluster", "all")...)
+		cat = append(cat, i.request.GetJobCategories(address, "ubercluster", "all")...)
 	}
 	return cat, nil
 }
 
-func (i *inception) DRMSVersion() string {
+func (i *Inception) DRMSVersion() string {
 	return "0.1"
 }
 
-func (i *inception) DRMSName() string {
+func (i *Inception) DRMSName() string {
 	return "ubercluster"
 }
 
-func (i *inception) DRMSLoad() float64 {
+func (i *Inception) DRMSLoad() float64 {
 	return 0.5
 }
 
-func (i *inception) RunJob(template types.JobTemplate) (string, error) {
+func (i *Inception) RunJob(template types.JobTemplate) (string, error) {
 	return "", nil
 }
 
-func (i *inception) JobOperation(jobsessionname, operation, jobid string) (string, error) {
+func (i *Inception) JobOperation(jobsessionname, operation, jobid string) (string, error) {
 	return "", nil
 }
 
 // start uc as proxy
-func inceptionMode(address string) {
-	var incept inception
-	incept.config = config // configuration contains all connected clusters
+func inceptionMode(certFile, keyFile, otp, address string) {
+	incept := NewInception(certFile, keyFile, otp, config)
+
 	fmt.Println("Starting uc in inception mode as proxy listening at address: ", address)
 	var sc proxy.SecConfig
-	sc.OTP = *otp
+	sc.OTP = otp
 	var pi persistency.DummyPersistency
 	// yubikey not supported since it would require interactivity
-	proxy.ProxyListenAndServe(address, "", "", sc, &pi, &incept)
+	proxy.ProxyListenAndServe(address, "", "", sc, &pi, incept)
 }
